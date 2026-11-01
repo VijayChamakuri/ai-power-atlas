@@ -8,6 +8,6 @@ __pycache__/
 .ruff_cache/
 .coverage
 logs/
-data/
-raw/
+/data/
+/raw/
 *.tar.gz
