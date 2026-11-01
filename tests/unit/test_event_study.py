@@ -10,6 +10,7 @@ import pytest
 from atlas import config
 from atlas.ml import event_study as es
 from atlas.ml.detectability import pseudo_dates, step_estimate
+from atlas.ml.features import build_features, weighted_weather
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "eia" / "pnm_daily_demand_20261031.csv"
 
@@ -84,3 +85,64 @@ def test_claim_rule(
     adjusted: float, estimate: float, lead: float, other: float, gap: float, expected: str
 ) -> None:
     assert es.claim(adjusted, estimate, lead, 26.0, other, gap) == expected
+
+
+@pytest.fixture(scope="module")
+def hourly() -> pd.DataFrame:
+    raw = pd.read_parquet(FIXTURE.parent / "pnm_hourly_20261031.parquet").set_index("hour")
+    weather = raw.reset_index().assign(time=lambda frame: frame["hour"])
+    features = build_features(weighted_weather({"a": weather}, {"a": 1.0}), "America/Denver")
+    return features.join(raw["demand"])
+
+
+def test_step_in_real_pre_site_demand_moves_the_estimate_by_the_step(hourly: pd.DataFrame) -> None:
+    t = date(2022, 7, 1)
+    moment = pd.Timestamp(t, tz="UTC")
+    features = hourly.drop(columns="demand")
+    demand = hourly["demand"]
+    base = step_estimate(es.daily_errors(demand, features, t), t)
+    stepped = demand.where(demand.index < moment, demand + 100.0)
+    assert step_estimate(es.daily_errors(stepped, features, t), t) - base == pytest.approx(100.0)
+
+
+def test_donor_rule_needs_size_and_coverage() -> None:
+    index = pd.date_range("2024-01-01", periods=240, freq="h", tz="UTC")
+    start, end = date(2024, 1, 1), date(2024, 1, 10)
+    assert es.qualifies_as_donor(pd.Series(600.0, index), start, end, 500, 0.95)
+    assert not es.qualifies_as_donor(pd.Series(400.0, index), start, end, 500, 0.95)
+    assert not es.qualifies_as_donor(pd.Series(600.0, index[:120]), start, end, 500, 0.95)
+
+
+def _result(site: str, p: float) -> es.SiteResult:
+    return es.SiteResult(
+        site,
+        "PNM",
+        date(2026, 3, 1),
+        114.0,
+        90.0,
+        p,
+        10.0,
+        150.0,
+        40.0,
+        5.0,
+        40.0,
+        80.0,
+        0.08,
+        60.0,
+    )
+
+
+def test_labels_use_holm_across_primary_sites() -> None:
+    labeled = {r.site: r for r in es.with_labels([_result("a", 0.0204), _result("b", 0.4)])}
+    assert labeled["a"].label == "supported"
+    assert labeled["a"].adjusted_p == pytest.approx(0.0408)
+    assert labeled["b"].label == "null"
+
+
+def test_report_states_limits_and_marks_secondary_results() -> None:
+    primary = es.with_labels([_result("a", 0.0204)])
+    report = es.render_event_study(primary, [_result("c", 0.3)], 28)
+    assert "does not prove" in report
+    assert "| c | PNM (New Mexico) |" in report
+    assert "secondary" in report
+    assert "28 control grids" in report

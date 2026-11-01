@@ -1,4 +1,4 @@
-.PHONY: setup up down lint test ci sources-check ingest analysis pipeline paper lake-export lake-restore clean
+.PHONY: setup up down lint test ci sources-check ingest analysis pipeline paper lake-export lake-restore m2 clean
 
 setup:
 	uv sync --python 3.12
@@ -50,6 +50,11 @@ lake-export:
 
 lake-restore:
 	uv run atlas lake restore atlas-m1-frozen-lake.tar.gz
+
+# Refuses to run before the freeze date in Amendment 4.
+m2:
+	uv run atlas ingest m2
+	uv run atlas analyze event-study
 
 clean:
 	rm -rf .mypy_cache .pytest_cache .ruff_cache

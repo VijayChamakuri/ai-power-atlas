@@ -39,6 +39,37 @@ M2_SUPPORT_P = 0.10  # Other-grid placebo. Coarse, because the pool holds few gr
 M2_LEAD_DAYS = 180  # A window this far before the start holds no site load, so it should show none.
 M2_SHIFT_DAYS = 90  # Sensitivity to Epoch's estimated start dates, from docs/PLAN.md.
 
+# Fixed by Amendment 4. Start dates stay as frozen in M1, even if Epoch changes them later.
+M2_PRIMARY = (
+    {"site": "Meta Kuna", "ba": "IPCO", "start": date(2026, 6, 1), "expected_mw": 198.0},
+    {"site": "Meta Los Lunas", "ba": "PNM", "start": date(2026, 3, 1), "expected_mw": 114.0},
+)
+M2_SECONDARY = (
+    {"site": "Meta-QTS Hillsboro 2", "ba": "PGE", "start": date(2023, 8, 2), "expected_mw": 61.0},
+    {"site": "New Carlisle", "ba": "AEP", "start": date(2025, 6, 23), "expected_mw": 1244.0},
+)
+M2_DONOR_MIN_MEDIAN_MW = 500.0  # Amendment 4: small grids are too noisy to compare by share.
+M2_DONOR_MIN_COVERAGE = 0.95  # Amendment 4: at least 95% of hours reported.
+# Totals across several grids, not grids themselves.
+EIA_AGGREGATES = frozenset(
+    {
+        "CAL",
+        "CAR",
+        "CENT",
+        "FLA",
+        "MIDA",
+        "MIDW",
+        "NE",
+        "NW",
+        "NY",
+        "SE",
+        "SW",
+        "TEN",
+        "TEX",
+        "US48",
+    }
+)
+
 # EIA-930 hours are UTC, but load follows local time. Each BA uses the zone of most of its load.
 BA_TIMEZONES = {
     "AEP": "America/New_York",
@@ -56,6 +87,38 @@ BA_TIMEZONES = {
     "SWPP": "America/Chicago",
     "TVA": "America/Chicago",
     "WALC": "America/Phoenix",
+    # Possible control grids for M2.
+    "AEC": "America/Chicago",
+    "AECI": "America/Chicago",
+    "AVA": "America/Los_Angeles",
+    "BANC": "America/Los_Angeles",
+    "BHBA": "America/Denver",
+    "CHPD": "America/Los_Angeles",
+    "CISO": "America/Los_Angeles",
+    "CPLE": "America/New_York",
+    "CPLW": "America/New_York",
+    "DOPD": "America/Los_Angeles",
+    "EPE": "America/Denver",
+    "FMPP": "America/New_York",
+    "FPC": "America/New_York",
+    "FPL": "America/New_York",
+    "GCPD": "America/Los_Angeles",
+    "IID": "America/Los_Angeles",
+    "ISNE": "America/New_York",
+    "JEA": "America/New_York",
+    "LDWP": "America/Los_Angeles",
+    "LGEE": "America/New_York",
+    "NWMT": "America/Denver",
+    "PSCO": "America/Denver",
+    "PSEI": "America/Los_Angeles",
+    "SCL": "America/Los_Angeles",
+    "SEC": "America/New_York",
+    "TAL": "America/New_York",
+    "TEC": "America/New_York",
+    "TEPC": "America/Phoenix",
+    "TIDC": "America/Los_Angeles",
+    "TPWR": "America/Los_Angeles",
+    "WAUW": "America/Denver",
 }
 
 # Short forms of the respondent names in EIA-930, with a region where the name does not give one.

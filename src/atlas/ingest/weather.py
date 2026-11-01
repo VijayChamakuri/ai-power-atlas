@@ -114,8 +114,9 @@ def ingest_county(
     lake: pafs.FileSystem,
     start: date,
     end: date,
+    prefix: str = "raw/weather",
 ) -> None:
-    key = f"raw/weather/county={fips}.parquet"
+    key = f"{prefix}/county={fips}.parquet"
     if exists(lake, key):
         return
     frame = fetch_weather(client, latitude, longitude, start, end)

@@ -1,12 +1,26 @@
 """Scoring for M2, fixed by Amendment 4. Each estimate passes through a lock before it exists."""
 
-from datetime import date
+from dataclasses import dataclass, replace
+from datetime import date, timedelta
 from typing import Literal
 
 import numpy as np
+import pandas as pd
 from scipy.optimize import minimize
 
-from atlas.config import M2_ALPHA, M2_AMENDMENT_APPROVED, M2_FREEZE_DATE, M2_SUPPORT_P
+from atlas.config import (
+    BA_NAMES,
+    M2_ALPHA,
+    M2_AMENDMENT_APPROVED,
+    M2_FREEZE_DATE,
+    M2_SUPPORT_P,
+    PEAK_WINDOW_DAYS,
+    POST_DAYS,
+    TRAIN_GAP_DAYS,
+)
+from atlas.ml.baseline import fit_predict
+from atlas.ml.candidates import clean_demand
+from atlas.ml.detectability import daily_residuals, null_threshold, step_estimate
 
 Claim = Literal["supported", "suggestive", "null"]
 
@@ -88,3 +102,170 @@ def claim(
         synthetic_gap_value > 0,
     )
     return "supported" if all(checks) else "suggestive"
+
+
+def daily_errors(demand: pd.Series, features: pd.DataFrame, t: date) -> pd.Series:
+    """Same model and windows as M1, so the M1 null windows still describe this estimate's noise."""
+    cleaned = clean_demand(demand.dropna()).rename("demand")
+    frame = features.join(cleaned, how="inner").dropna()
+    moment = pd.Timestamp(t, tz="UTC")
+    train_end = moment - pd.Timedelta(days=TRAIN_GAP_DAYS)
+    window_end = moment + pd.Timedelta(days=POST_DAYS)
+    future = frame[(frame.index >= train_end) & (frame.index < window_end)]
+    return daily_residuals(future["demand"], fit_predict(frame[frame.index < train_end], future))
+
+
+def peak_of(demand: pd.Series, freeze: date) -> float:
+    cleaned = clean_demand(demand.dropna())
+    start = pd.Timestamp(freeze - timedelta(days=PEAK_WINDOW_DAYS), tz="UTC")
+    return float(cleaned[cleaned.index >= start].max())
+
+
+def qualifies_as_donor(
+    demand: pd.Series, start: date, end: date, min_median: float, min_coverage: float
+) -> bool:
+    reported = demand.dropna()
+    expected = ((end - start).days + 1) * 24
+    return len(reported) / expected >= min_coverage and float(reported.median()) >= min_median
+
+
+@dataclass(frozen=True)
+class SiteResult:
+    site: str
+    ba: str
+    start: date
+    expected_mw: float
+    estimate_mw: float
+    p: float
+    low_mw: float
+    high_mw: float
+    threshold_mw: float
+    lead_mw: float
+    minus_90_mw: float
+    plus_90_mw: float
+    other_grid_p: float
+    synthetic_gap_mw: float
+    adjusted_p: float | None = None
+    label: Claim | None = None
+
+
+def _aligned_shares(
+    errors: pd.Series,
+    peak: float,
+    donor_errors: dict[str, pd.Series],
+    donor_peaks: dict[str, float],
+) -> pd.DataFrame:
+    shares = {"target": errors / peak * 100}
+    shares |= {code: series / donor_peaks[code] * 100 for code, series in donor_errors.items()}
+    return pd.DataFrame(shares).dropna()
+
+
+def score_site(
+    site: str,
+    ba: str,
+    start: date,
+    expected_mw: float,
+    errors: dict[str, pd.Series],
+    null: np.ndarray,
+    peak: float,
+    donor_errors: dict[str, pd.Series],
+    donor_peaks: dict[str, float],
+) -> SiteResult:
+    estimate = step_estimate(errors["main"], start)
+    low, high = placebo_interval(estimate, null)
+    target_share = estimate / peak
+    donor_shares = np.array(
+        [step_estimate(series, start) / donor_peaks[code] for code, series in donor_errors.items()]
+    )
+    shares = _aligned_shares(errors["main"], peak, donor_errors, donor_peaks)
+    moment = pd.Timestamp(start, tz="UTC")
+    pre, post = shares[shares.index < moment], shares[shares.index >= moment]
+    columns = [code for code in shares.columns if code != "target"]
+    gap = synthetic_gap(
+        pre["target"].to_numpy(),
+        pre[columns].to_numpy(),
+        post["target"].to_numpy(),
+        post[columns].to_numpy(),
+    )
+    return SiteResult(
+        site,
+        ba,
+        start,
+        expected_mw,
+        estimate,
+        rank_p(estimate, null),
+        low,
+        high,
+        null_threshold(null),
+        step_estimate(errors["lead"], start - timedelta(days=180)),
+        step_estimate(errors["minus"], start - timedelta(days=90)),
+        step_estimate(errors["plus"], start + timedelta(days=90)),
+        rank_p(target_share, donor_shares),
+        gap * peak / 100,
+    )
+
+
+def with_labels(results: list[SiteResult]) -> list[SiteResult]:
+    """Holm runs across the primary sites only, because only they can earn a label."""
+    adjusted = holm({result.site: result.p for result in results})
+    return [
+        replace(
+            result,
+            adjusted_p=adjusted[result.site],
+            label=claim(
+                adjusted[result.site],
+                result.estimate_mw,
+                result.lead_mw,
+                result.threshold_mw,
+                result.other_grid_p,
+                result.synthetic_gap_mw,
+            ),
+        )
+        for result in results
+    ]
+
+
+def _row(result: SiteResult) -> str:
+    return (
+        f"| {result.site} | {BA_NAMES[result.ba]} | {result.start.isoformat()} "
+        f"| {result.expected_mw:,.0f} | {result.estimate_mw:+,.0f} "
+        f"| {result.low_mw:+,.0f} to {result.high_mw:+,.0f} | {result.p:.3f} "
+        f"| {'' if result.adjusted_p is None else f'{result.adjusted_p:.3f}'} "
+        f"| {result.label or 'secondary'} |"
+    )
+
+
+def _checks(result: SiteResult) -> str:
+    return (
+        f"| {result.site} | {result.lead_mw:+,.0f} | {result.threshold_mw:+,.0f} "
+        f"| {result.minus_90_mw:+,.0f} | {result.plus_90_mw:+,.0f} "
+        f"| {result.other_grid_p:.3f} | {result.synthetic_gap_mw:+,.0f} |"
+    )
+
+
+def render_event_study(
+    primary: list[SiteResult], secondary: list[SiteResult], donor_count: int
+) -> str:
+    everything = [*primary, *secondary]
+    return "\n".join(
+        [
+            "# M2 event study results",
+            "",
+            "Generated by `atlas analyze event-study`. Rules: Amendment 4 in",
+            "[docs/analysis_plan.md](analysis_plan.md). Even `supported` does not prove a site",
+            "caused the rise, because other new customers could explain it.",
+            "",
+            "| Site | Grid | Start | Expected MW | Estimate MW | 90% interval MW | p | Holm p "
+            "| Label |",
+            "|---|---|---|---|---|---|---|---|---|",
+            *[_row(result) for result in everything],
+            "",
+            f"## Checks ({donor_count} control grids)",
+            "",
+            "| Site | Lead window MW | Threshold MW | Start -90 days MW | Start +90 days MW "
+            "| Other-grid p | Synthetic gap MW |",
+            "|---|---|---|---|---|---|---|",
+            *[_checks(result) for result in everything],
+            "",
+        ]
+    )

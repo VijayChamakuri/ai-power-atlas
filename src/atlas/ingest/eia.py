@@ -26,6 +26,17 @@ class EiaError(RuntimeError):
     """Carries no URL: httpx errors include the query string, which holds the API key."""
 
 
+def list_respondents(client: httpx.Client, api_key: str) -> list[str]:
+    try:
+        response = client.get(
+            f"{BASE_URL}/region-data/facet/respondent", params={"api_key": api_key}
+        )
+        response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise EiaError(f"EIA request failed: {type(exc).__name__}") from None
+    return sorted(item["id"] for item in response.json()["response"]["facets"])
+
+
 def months(start: date, end: date) -> Iterator[tuple[int, int]]:
     year, month = start.year, start.month
     while (year, month) <= (end.year, end.month):
@@ -103,10 +114,11 @@ def ingest_region(
     start: date,
     freeze: date,
     resume: bool = True,
+    prefix: str = "raw/eia",
 ) -> int:
     total = 0
     for year, month in months(start, freeze):
-        key = f"raw/eia/region_data/year={year}/month={month:02}/respondent={respondent}.parquet"
+        key = f"{prefix}/region_data/year={year}/month={month:02}/respondent={respondent}.parquet"
         if resume and exists(lake, key):
             continue
         window = month_window(year, month, freeze)
@@ -133,11 +145,12 @@ def ingest_sub_ba(
     start: date,
     freeze: date,
     resume: bool = True,
+    prefix: str = "raw/eia",
 ) -> int:
     total = 0
     for year, month in months(start, freeze):
         key = (
-            f"raw/eia/region_sub_ba_data/year={year}/month={month:02}/"
+            f"{prefix}/region_sub_ba_data/year={year}/month={month:02}/"
             f"parent={parent}/subba={subba}.parquet"
         )
         if resume and exists(lake, key):
