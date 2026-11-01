@@ -150,4 +150,31 @@ committed.
 
 ## Amendments
 
-None yet.
+### Amendment 1 (2026-10-31): locating sites and overlapping polygons
+
+Reason: the Census geocoder found only 35 of 77 US site addresses, including none for Abilene or
+Colossus 1, and some sites fall inside more than one BA polygon. Written before any demand value was
+pulled.
+
+Location order for each site with power by the freeze: (1) Census geocoder on Epoch's address, (2)
+median coordinates of the Google Earth links in Epoch's own notes, (3) Census Gazetteer centroid of
+the ZIP in Epoch's address, (4) a hand-entered ZIP in `dbt/seeds/site_locations.csv` with a citation.
+Each site's method is stored and reported. A site still unlocated is excluded and listed. Sites with
+no power by the freeze are not located, because they cannot change a share, a first date, or the go
+test.
+
+A site inside more than one BA polygon counts toward the share and first date of each of those BAs,
+and cannot satisfy the go criterion. Polygons do not say which BA serves it, and this rule avoids
+choosing one after results exist. If this rule alone decides go or pivot, the ADR must say so.
+
+### Amendment 2 (2026-11-01): a BA whose data stops before the freeze
+
+Reason: WACM's EIA-930 demand ends on 2026-04-02, around
+[SPP's expansion into the Western Interconnection](https://www.powermag.com/spp-set-to-become-first-rto-straddling-eastern-and-western-interconnections/).
+Written after seeing each BA's 12-month peak and site share, with no model fit and no residual
+computed.
+
+A BA's 12-month peak window ends at its last hour with data, not at the freeze, so a partial year
+cannot leave out a summer peak. A BA whose data ends before its first site date is not a candidate,
+because the site's load can never appear in that series. Peaks use the same cleaned hours as the
+model. Raw peaks and dropped hours are stored next to them.
