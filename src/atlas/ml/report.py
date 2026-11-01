@@ -30,20 +30,23 @@ def render_results(
         "## Minimum detectable step per BA",
         "",
         "`Rate at 0` should be near 5% and `Rate at MDE` near 80%. `Injected` adds the step to",
-        "real demand and re-measures. Pseudo-dates overlap heavily, so each MDE is rough.",
+        "real demand and re-measures. Each `e(t)` spans 545 days and pseudo-dates are 30 days",
+        "apart, so a BA has far fewer independent windows than pseudo-dates. Each MDE is rough.",
         "",
         "| BA | Status | Pseudo-dates | Peak MW | MDE MW | MDE % of peak | Rate at 0 | Rate at MDE "
-        "| Injected | Dropped hours |",
-        "|---|---|---|---|---|---|---|---|---|---|",
+        "| Injected | e(t) min | e(t) max | Dropped hours |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for ba, result in results.items():
         peak = peaks.get(ba)
         percent = result.mde_mw / peak * 100 if result.mde_mw is not None and peak else None
+        low = _number(float(result.estimates.min())) if result.estimates.size else ""
+        high = _number(float(result.estimates.max())) if result.estimates.size else ""
         lines.append(
             f"| {ba} | {result.status} | {result.dates} | {_number(peak)} "
             f"| {_number(result.mde_mw)} | {_number(percent, 1)} "
             f"| {_number(result.rate_at_zero, 2)} | {_number(result.rate_at_mde, 2)} "
-            f"| {_number(result.injected_rate, 2)} | {result.dropped_hours} |"
+            f"| {_number(result.injected_rate, 2)} | {low} | {high} | {result.dropped_hours} |"
         )
     lines += [
         "",
@@ -96,9 +99,9 @@ def render_results(
             result.scores["eia_day_ahead"],
         )
         lines.append(
-            f"| {ba} | {model['mape']:.1f} | {naive['mape']:.1f} | {eia['mape']:.1f} "
-            f"| {model['rmse']:,.0f} | {naive['rmse']:,.0f} | {eia['rmse']:,.0f} "
-            f"| {model['peak_hour_mae']:,.0f} | {naive['peak_hour_mae']:,.0f} "
-            f"| {eia['peak_hour_mae']:,.0f} |"
+            f"| {ba} | {_number(model['mape'], 1)} | {_number(naive['mape'], 1)} "
+            f"| {_number(eia['mape'], 1)} | {_number(model['rmse'])} | {_number(naive['rmse'])} "
+            f"| {_number(eia['rmse'])} | {_number(model['peak_hour_mae'])} "
+            f"| {_number(naive['peak_hour_mae'])} | {_number(eia['peak_hour_mae'])} |"
         )
     return "\n".join(lines) + "\n"

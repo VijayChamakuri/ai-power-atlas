@@ -37,6 +37,7 @@ SITES_KEY = f"derived/sites/freeze={FREEZE_DATE.isoformat()}/sites.parquet"
 SITE_BAS_KEY = f"derived/sites/freeze={FREEZE_DATE.isoformat()}/site_bas.parquet"
 CANDIDATES_KEY = f"derived/candidates/freeze={FREEZE_DATE.isoformat()}/candidates.parquet"
 RESULTS_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/sites.parquet"
+ESTIMATES_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/estimates.parquet"
 COUNTIES_KEY = f"derived/candidates/freeze={FREEZE_DATE.isoformat()}/counties.parquet"
 
 
@@ -268,6 +269,17 @@ def analyze_detectability(output: Path = Path("docs/m1_detectability.md")) -> No
     )
     table = go_test(sites, site_bas, bas)
     put_frame(lake, RESULTS_KEY, table.drop(columns=["location_text"]))
+    put_frame(
+        lake,
+        ESTIMATES_KEY,
+        pd.DataFrame(
+            [
+                {"ba": r.ba, "order": order, "estimate_mw": value}
+                for r in results.values()
+                for order, value in enumerate(r.estimates)
+            ]
+        ),
+    )
     output.write_text(
         render_results(results, candidates, table, sites, seed, commit, verdict(table))
     )
