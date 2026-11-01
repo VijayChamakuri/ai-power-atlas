@@ -1,0 +1,142 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.eia.gov
+    method: GET
+    uri: https://api.eia.gov/v2/electricity/rto/region-data/data/?api_key=replay-only&data%5B0%5D=value&end=2024-01-01T02&facets%5Brespondent%5D%5B0%5D=AVA&facets%5Btype%5D%5B0%5D=D&facets%5Btype%5D%5B1%5D=DF&frequency=hourly&length=4&offset=0&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc&sort%5B1%5D%5Bcolumn%5D=type&sort%5B1%5D%5Bdirection%5D=asc&start=2024-01-01T00
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA8VUbWvbMBD+K4c+24mTttmab2Fp1w66FVoKI86Hq3RxBLbkSXIzU/rfd1KcsZZu
+        g8E2Yyzr7nT36LmXR7FDZ7SpvJivHg8bMRfaSNu0NQUCR6FzRmRCkZdOt0Fbwxa3W4LF9SVINGBN
+        3Q92cFIUBTi786ANfLj59BE21jUYRgDXNaEnkNZ4rciln+BQx5jQ286xjy8d+QA7HbawQUkhAx/Q
+        8WIdkFFp7Xw8YDcbTwGChRYrbTBB9V0d/Eg8rTPBm5YDkJg/imAD1gx6Fq/BlucJEgs+85NfXeXL
+        ZSluS3FxMT1mk03CYWTPFlvGVff7c5hYaslpq1g1LabHeTHh97YoxCGiIhM9L+4Wz0S5wYai/EHz
+        jeCdda11mMjMROjbqFsOvwfbJTVoFAsfsO6iYHLy9uiwzTujA+dNNFThDkOISL14yv4qwvOXELHP
+        cUuoQCWwMdsk0YdnqE/f/Cnqyb/hdZby/h8R/hGvs9lvq2H9sm8vUj0PXjNQP4uTgeHuqsjQHmsG
+        UatNICe3aCqC+x7usUYjYzdixxGdDj33eWmAnxsOJGkOsdfg7HKRnx4Ve821s6qTYQ4DlrOaZHBa
+        wnunFVxZvol1TLgYxkHsYB5HKWdzUY4fpuWYhjMcsRy7YPlDFcPMY5uW4/2XyWnRYeOjh1819UAp
+        k5WmzSudQ+Zl3qcs9TYaryK8umsivUOJsGfNPA6co5epfr5bpay/YsMAajJV2LIgDaI4AhP6Hyts
+        lUpsfSieVapvrqA1U7afiny8EE+8xVbfkfP7ENPRZDSJbs++SqoXSl2a50o+8w0UbtrgEgYAAA==
+    headers:
+      access-control-allow-headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Params
+      access-control-allow-methods:
+      - GET,POST
+      access-control-allow-origin:
+      - '*'
+      age:
+      - '0'
+      alt-svc:
+      - h3=":443"; ma=93600
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-length:
+      - '625'
+      content-type:
+      - application/json
+      date:
+      - Sun, 01 Nov 2026 01:52:09 GMT
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      vary:
+      - Accept-Encoding
+      - Accept-Encoding
+      via:
+      - https/1.1 api-umbrella (ApacheTrafficServer [cMsSf ])
+      x-api-umbrella-request-id:
+      - d1ij79amv5pidvp62eq0
+      x-cache:
+      - MISS
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-powered-by:
+      - PHP/8.2.35
+      x-vcap-request-id:
+      - 9ad2ec9e-5959-406a-6096-2caf4fc92e6f
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.eia.gov
+    method: GET
+    uri: https://api.eia.gov/v2/electricity/rto/region-data/data/?api_key=replay-only&data%5B0%5D=value&end=2024-01-01T02&facets%5Brespondent%5D%5B0%5D=AVA&facets%5Btype%5D%5B0%5D=D&facets%5Btype%5D%5B1%5D=DF&frequency=hourly&length=4&offset=4&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc&sort%5B1%5D%5Bcolumn%5D=type&sort%5B1%5D%5Bdirection%5D=asc&start=2024-01-01T00
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA7VTwW7bMAz9FUJnO3G8tkNzC5Z27YBuBVoUKOIcWIlxBNiSJ8nNjCL/PkpxhrXo
+        ttMMw7JIinx6fHwRO3RGm9qL+erluBFzoY20bddQIHAUemdEJhR56XQXtDUccb8lWNxeg0QD1jTD
+        GAenRVGAszsP2sCXu29fYWNdi2ECcNsQegJpjdeKXPoJDnWsCYPtHef43pMPsNNhCxuUFDLwAR0v
+        1gEZldbexwN2s/EUIFjosNYGE1TfN8FPxH6dCd50XIDE/EUEG7Bh0GfxGhx5mSCx4ZGf/OYmXy4r
+        cV+Jq6vyhEM2CYeRA0dsGVczHM5hYqkjp61iV1mUJ3kx4/e+KMWxoiITMy8eFq9MucGWov1Z843g
+        k3WddZjIzEQYuuhbjr/H2CW1aBQbn7Hpo2F2dvrxuM17owP3TbRU4w5DiEi92Gf/FeHlW4g45Lgl
+        VKAS2NhtkujDK9Tn5b9Qr9/q6yrxPmbNQP2pTgaGVVCToQPWDKJXm0BObtHUBE8DPGGDRkbVYM8V
+        nQ4D67EywM8dF5I0h6gJuLhe5OcfioPn1lnVyzCHEctFQzI4LeGz0wpuLN/EOiZcjLKNSuOxST2b
+        i2r6XFZTGs9wxWrqguUP1Qwzj3Kqpocvk9Ohw9bHDH8T30gpk5Wm4k2HCw4k817fvY3Bqwiv6dtI
+        7ygRzqyZx5Fz9DLp51dU6vo7MQygIVOHLRvSwMRRTeh/V9gqSWx9FM8q6ZsVtGbKDtObju95i51+
+        IOcPJcrJbDKLaS9+SGoWSl2b185C7H8CkjvedboEAAA=
+    headers:
+      access-control-allow-headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Params
+      access-control-allow-methods:
+      - GET,POST
+      access-control-allow-origin:
+      - '*'
+      age:
+      - '1'
+      alt-svc:
+      - h3=":443"; ma=93600
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-length:
+      - '602'
+      content-type:
+      - application/json
+      date:
+      - Sun, 01 Nov 2026 01:52:10 GMT
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      vary:
+      - Accept-Encoding
+      - Accept-Encoding
+      via:
+      - https/1.1 api-umbrella (ApacheTrafficServer [cMsSf ])
+      x-api-umbrella-request-id:
+      - d1ij79heh1r4fa7653r0
+      x-cache:
+      - MISS
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-powered-by:
+      - PHP/8.2.35
+      x-vcap-request-id:
+      - babfa699-fa10-4c37-701d-1381ded2a9ae
+    status:
+      code: 200
+      message: OK
+version: 1
