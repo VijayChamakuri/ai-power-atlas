@@ -1,8 +1,8 @@
 """Scoring for M2, fixed by Amendment 4. Each estimate passes through a lock before it exists."""
 
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from datetime import date, timedelta
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -12,6 +12,10 @@ from atlas.config import (
     BA_NAMES,
     M2_ALPHA,
     M2_AMENDMENT_APPROVED,
+    M2_EARLY_APPROVED,
+    M2_EARLY_FREEZE_DATE,
+    M2_EARLY_PASS_P,
+    M2_EARLY_SITE,
     M2_FREEZE_DATE,
     M2_SUPPORT_P,
     PEAK_WINDOW_DAYS,
@@ -23,6 +27,7 @@ from atlas.ml.candidates import clean_demand
 from atlas.ml.detectability import daily_residuals, null_threshold, step_estimate
 
 Claim = Literal["supported", "suggestive", "null"]
+EarlyReading = Literal["passes the main test", "pending Meta Kuna", "null"]
 
 
 class EventStudyLockedError(RuntimeError):
@@ -36,6 +41,32 @@ def require_unlocked(
         raise EventStudyLockedError("Amendment 4 has not been approved.")
     if today < freeze:
         raise EventStudyLockedError(f"The M2 freeze date is {freeze.isoformat()}.")
+
+
+def require_early_unlocked(
+    site: str,
+    today: date,
+    approved: bool = M2_EARLY_APPROVED,
+    freeze: date = M2_EARLY_FREEZE_DATE,
+) -> None:
+    """Amendment 5 opens one site only. Everything else still waits for require_unlocked."""
+    if not approved:
+        raise EventStudyLockedError("Amendment 5 has not been approved.")
+    if site != M2_EARLY_SITE:
+        raise EventStudyLockedError(f"Amendment 5 covers only {M2_EARLY_SITE}.")
+    if today < freeze:
+        raise EventStudyLockedError(f"The early freeze date is {freeze.isoformat()}.")
+
+
+def require_first_run(already_run: bool) -> None:
+    if already_run:
+        raise EventStudyLockedError("Amendment 5 allows one early run, and it has happened.")
+
+
+def early_reading(p: float) -> EarlyReading:
+    if p < M2_EARLY_PASS_P:
+        return "passes the main test"
+    return "pending Meta Kuna" if p < M2_ALPHA else "null"
 
 
 def rank_p(estimate: float, null: np.ndarray) -> float:
@@ -142,11 +173,12 @@ class SiteResult:
     threshold_mw: float
     lead_mw: float
     minus_90_mw: float
-    plus_90_mw: float
+    plus_90_mw: float | None
     other_grid_p: float
     synthetic_gap_mw: float
     adjusted_p: float | None = None
     label: Claim | None = None
+    revision_mw: float | None = None
 
 
 def _aligned_shares(
@@ -199,9 +231,29 @@ def score_site(
         null_threshold(null),
         step_estimate(errors["lead"], start - timedelta(days=180)),
         step_estimate(errors["minus"], start - timedelta(days=90)),
-        step_estimate(errors["plus"], start + timedelta(days=90)),
+        # Amendment 5: an early run ends before this window does, so it comes later.
+        step_estimate(errors["plus"], start + timedelta(days=90)) if "plus" in errors else None,
         rank_p(target_share, donor_shares),
         gap * peak / 100,
+    )
+
+
+def result_to_frame(result: SiteResult) -> pd.DataFrame:
+    return pd.DataFrame([asdict(result)]).astype({"start": str})
+
+
+def result_from_frame(frame: pd.DataFrame) -> SiteResult:
+    record: dict[str, Any] = {
+        str(name): value
+        for name, value in frame.astype(object).where(frame.notna(), None).iloc[0].items()
+    }
+    return SiteResult(**{**record, "start": date.fromisoformat(str(record["start"]))})
+
+
+def keep_early_result(early: SiteResult, later: SiteResult) -> SiteResult:
+    """Amendment 5: the early numbers stand. The later snapshot adds one check and a revision."""
+    return replace(
+        early, plus_90_mw=later.plus_90_mw, revision_mw=later.estimate_mw - early.estimate_mw
     )
 
 
@@ -236,9 +288,10 @@ def _row(result: SiteResult) -> str:
 
 
 def _checks(result: SiteResult) -> str:
+    plus = "not yet" if result.plus_90_mw is None else f"{result.plus_90_mw:+,.0f}"
     return (
         f"| {result.site} | {result.lead_mw:+,.0f} | {result.threshold_mw:+,.0f} "
-        f"| {result.minus_90_mw:+,.0f} | {result.plus_90_mw:+,.0f} "
+        f"| {result.minus_90_mw:+,.0f} | {plus} "
         f"| {result.other_grid_p:.3f} | {result.synthetic_gap_mw:+,.0f} |"
     )
 
@@ -266,6 +319,42 @@ def render_event_study(
             "| Other-grid p | Synthetic gap MW |",
             "|---|---|---|---|---|---|---|",
             *[_checks(result) for result in everything],
+            "",
+            *[
+                f"{result.site} ran early under Amendment 5. EIA's revisions moved its estimate by "
+                f"{result.revision_mw:+,.1f} MW since then, which cannot change its label."
+                for result in everything
+                if result.revision_mw is not None
+            ],
+            "",
+        ]
+    )
+
+
+def render_early_result(result: SiteResult, donor_count: int) -> str:
+    return "\n".join(
+        [
+            "# Early M2 result: Meta Los Lunas",
+            "",
+            "Generated by `atlas analyze event-study-early`. Rules: Amendments 4 and 5 in",
+            "[docs/analysis_plan.md](analysis_plan.md). This site ran early for timing, not",
+            "because of anything in the data. Final labels come from the Holm table after the",
+            "2026-12-15 run. Even a pass does not prove the site caused a rise, because other new",
+            "customers could explain it.",
+            "",
+            f"**Reading: {early_reading(result.p)}.**",
+            "",
+            "| Site | Grid | Start | Expected MW | Estimate MW | 90% interval MW | p | Holm p "
+            "| Label |",
+            "|---|---|---|---|---|---|---|---|---|",
+            _row(result).replace("| secondary |", "| set after Meta Kuna runs |"),
+            "",
+            f"## Checks ({donor_count} control grids)",
+            "",
+            "| Site | Lead window MW | Threshold MW | Start -90 days MW | Start +90 days MW "
+            "| Other-grid p | Synthetic gap MW |",
+            "|---|---|---|---|---|---|---|",
+            _checks(result),
             "",
         ]
     )

@@ -1,5 +1,6 @@
 """Uses only PNM demand from before its first site, so no real effect can leak into these tests."""
 
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
@@ -146,3 +147,74 @@ def test_report_states_limits_and_marks_secondary_results() -> None:
     assert "| c | PNM (New Mexico) |" in report
     assert "secondary" in report
     assert "28 control grids" in report
+
+
+def test_early_lock_opens_for_the_named_site_only() -> None:
+    es.require_early_unlocked("Meta Los Lunas", date(2026, 11, 1), approved=True)
+    for site in ("Meta Kuna", "Meta-QTS Hillsboro 2", "New Carlisle"):
+        with pytest.raises(es.EventStudyLockedError, match="covers only"):
+            es.require_early_unlocked(site, date(2026, 11, 1), approved=True)
+
+
+def test_early_lock_needs_approval_and_the_early_freeze_date() -> None:
+    with pytest.raises(es.EventStudyLockedError, match="not been approved"):
+        es.require_early_unlocked("Meta Los Lunas", date(2030, 1, 1), approved=False)
+    with pytest.raises(es.EventStudyLockedError, match="early freeze"):
+        es.require_early_unlocked("Meta Los Lunas", date(2026, 10, 31), approved=True)
+
+
+def test_amendment_5_leaves_the_full_lock_in_place() -> None:
+    assert config.M2_FREEZE_DATE == date(2026, 12, 15)
+    with pytest.raises(es.EventStudyLockedError, match="freeze"):
+        es.require_unlocked(date(2026, 12, 14))
+
+
+def test_early_run_happens_once() -> None:
+    es.require_first_run(False)
+    with pytest.raises(es.EventStudyLockedError, match="one early run"):
+        es.require_first_run(True)
+
+
+@pytest.mark.parametrize(
+    ("p", "reading"),
+    [
+        (1 / 46, "passes the main test"),
+        (2 / 46, "pending Meta Kuna"),
+        (3 / 46, "null"),
+    ],
+)
+def test_early_reading_at_real_window_counts(p: float, reading: str) -> None:
+    assert es.early_reading(p) == reading
+
+
+@pytest.mark.parametrize("kuna_p", [1 / 49, 0.03, 0.2, 1.0])
+def test_early_pass_survives_holm_at_every_kuna_result(kuna_p: float) -> None:
+    assert es.holm({"los_lunas": 1 / 46, "kuna": kuna_p})["los_lunas"] < config.M2_ALPHA
+
+
+def test_pending_result_depends_on_kuna() -> None:
+    assert es.holm({"los_lunas": 2 / 46, "kuna": 1 / 49})["los_lunas"] < config.M2_ALPHA
+    assert es.holm({"los_lunas": 2 / 46, "kuna": 0.03})["los_lunas"] >= config.M2_ALPHA
+
+
+def test_early_null_stays_null_at_every_kuna_result() -> None:
+    assert es.holm({"los_lunas": 3 / 46, "kuna": 1 / 49})["los_lunas"] >= config.M2_ALPHA
+
+
+def test_early_result_survives_the_lake_and_stands_in_december() -> None:
+    early = replace(_result("Meta Los Lunas", 1 / 46), plus_90_mw=None)
+    stored = es.result_from_frame(es.result_to_frame(early))
+    assert stored == early
+    later = replace(early, estimate_mw=93.5, p=0.5, plus_90_mw=70.0)
+    kept = es.keep_early_result(stored, later)
+    assert (kept.estimate_mw, kept.p, kept.plus_90_mw) == (early.estimate_mw, early.p, 70.0)
+    assert kept.revision_mw == pytest.approx(3.5)
+    assert "moved its estimate by +3.5 MW" in es.render_event_study([kept], [], 28)
+
+
+def test_early_report_says_why_and_leaves_the_late_check_open() -> None:
+    report = es.render_early_result(replace(_result("Meta Los Lunas", 1 / 46), plus_90_mw=None), 28)
+    assert "for timing" in report
+    assert "not yet" in report
+    assert "passes the main test" in report
+    assert "does not prove" in report

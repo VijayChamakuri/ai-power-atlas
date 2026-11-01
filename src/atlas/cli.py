@@ -1,5 +1,6 @@
 import io
 import subprocess
+from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,8 @@ from atlas.config import (
     LIGHTGBM_PARAMS,
     M2_DONOR_MIN_COVERAGE,
     M2_DONOR_MIN_MEDIAN_MW,
+    M2_EARLY_FREEZE_DATE,
+    M2_EARLY_SITE,
     M2_FREEZE_DATE,
     M2_LEAD_DAYS,
     M2_PRIMARY,
@@ -35,7 +38,7 @@ from atlas.ingest.files import FILE_SOURCES, snapshot, snapshot_key
 from atlas.ingest.geo import SEEDS, map_sites, parse_zcta_centroids
 from atlas.ingest.weather import ingest_county, parse_counties, top_counties
 from atlas.lake.archive import export_lake, restore_lake
-from atlas.lake.io import get_bytes, get_frame, open_lake, put_frame
+from atlas.lake.io import exists, get_bytes, get_frame, open_lake, put_bytes, put_frame
 from atlas.lake.sample import write_sample
 from atlas.ml import figures
 from atlas.ml.baseline import fit_predict
@@ -53,10 +56,16 @@ from atlas.ml.detectability import (
 from atlas.ml.event_study import (
     SiteResult,
     daily_errors,
+    keep_early_result,
     peak_of,
     qualifies_as_donor,
+    render_early_result,
     render_event_study,
+    require_early_unlocked,
+    require_first_run,
     require_unlocked,
+    result_from_frame,
+    result_to_frame,
     score_site,
     with_labels,
 )
@@ -83,11 +92,31 @@ CANDIDATES_KEY = f"derived/candidates/freeze={FREEZE_DATE.isoformat()}/candidate
 RESULTS_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/sites.parquet"
 SCORES_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/scores.parquet"
 ESTIMATES_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/estimates.parquet"
-M2_RAW_EIA = f"raw/m2/freeze={M2_FREEZE_DATE.isoformat()}/eia"
-M2_RAW_WEATHER = f"raw/m2/freeze={M2_FREEZE_DATE.isoformat()}/weather"
-M2_DONORS_KEY = f"derived/m2/freeze={M2_FREEZE_DATE.isoformat()}/donors.parquet"
-M2_COUNTIES_KEY = f"derived/m2/freeze={M2_FREEZE_DATE.isoformat()}/counties.parquet"
 COUNTIES_KEY = f"derived/candidates/freeze={FREEZE_DATE.isoformat()}/counties.parquet"
+
+
+@dataclass(frozen=True)
+class Snapshot:
+    """Lake locations of one M2 snapshot, so the early run never reads the later one."""
+
+    freeze: date
+    root: str
+
+    @property
+    def raw_eia(self) -> str:
+        return f"raw/{self.root}/freeze={self.freeze.isoformat()}/eia"
+
+    @property
+    def raw_weather(self) -> str:
+        return f"raw/{self.root}/freeze={self.freeze.isoformat()}/weather"
+
+    def derived(self, name: str) -> str:
+        return f"derived/{self.root}/freeze={self.freeze.isoformat()}/{name}"
+
+
+M2_SNAPSHOT = Snapshot(M2_FREEZE_DATE, "m2")
+M2_EARLY_SNAPSHOT = Snapshot(M2_EARLY_FREEZE_DATE, "m2_early")
+M2_EARLY_RESULT_KEY = M2_EARLY_SNAPSHOT.derived("result.parquet")
 
 
 @app.callback()
@@ -487,15 +516,11 @@ def analyze_paper(output: Path = Path("docs/paper.pdf")) -> None:
     log.info("paper_written", path=str(output), bytes=output.stat().st_size)
 
 
-@ingest_app.command("m2")
-def ingest_m2() -> None:
-    """Takes the M2 snapshot once. Weather is rate limited, so this can take days and can resume."""
-    require_unlocked(date.today())
+def _take_snapshot(snapshot: Snapshot, targets: list[str], include_aep: bool) -> None:
     settings = Settings()
     lake = open_lake(settings)
     site_bas = get_frame(lake, SITE_BAS_KEY)
     site_codes = {code for row in site_bas["ba_codes"] for code in row.split(",") if code}
-    targets = sorted({str(item["ba"]) for item in (*M2_PRIMARY, *M2_SECONDARY)} - {"AEP"})
     by_name = {source.name: snapshot_key(source, FREEZE_DATE) for source in FILE_SOURCES}
     counties = parse_counties(
         get_bytes(lake, by_name["counties.zip"]),
@@ -515,37 +540,38 @@ def ingest_m2() -> None:
                 settings.eia_api_key,
                 lake,
                 HISTORY_START,
-                M2_FREEZE_DATE,
-                prefix=M2_RAW_EIA,
+                snapshot.freeze,
+                prefix=snapshot.raw_eia,
             )
-        ingest_sub_ba(
-            "PJM",
-            "AEP",
-            client,
-            settings.eia_api_key,
-            lake,
-            HISTORY_START,
-            M2_FREEZE_DATE,
-            prefix=M2_RAW_EIA,
-        )
+        if include_aep:
+            ingest_sub_ba(
+                "PJM",
+                "AEP",
+                client,
+                settings.eia_api_key,
+                lake,
+                HISTORY_START,
+                snapshot.freeze,
+                prefix=snapshot.raw_eia,
+            )
         donors = []
         for code in possible:
             try:
-                demand, _ = _read_series(lake, code, M2_RAW_EIA)
+                demand, _ = _read_series(lake, code, snapshot.raw_eia)
             except ValueError:
                 continue
             if qualifies_as_donor(
                 demand,
                 HISTORY_START,
-                M2_FREEZE_DATE,
+                snapshot.freeze,
                 M2_DONOR_MIN_MEDIAN_MW,
                 M2_DONOR_MIN_COVERAGE,
             ):
                 donors.append(code)
         chosen = top_counties(counties, [*targets, *donors], client)
         donors = [code for code in donors if code in set(chosen["ba"])]
-        put_frame(lake, M2_DONORS_KEY, pd.DataFrame({"ba": donors}))
-        put_frame(lake, M2_COUNTIES_KEY, chosen)
+        put_frame(lake, snapshot.derived("donors.parquet"), pd.DataFrame({"ba": donors}))
+        put_frame(lake, snapshot.derived("counties.parquet"), chosen)
         for county in chosen.drop_duplicates("fips").to_dict("records"):
             ingest_county(
                 county["fips"],
@@ -554,15 +580,43 @@ def ingest_m2() -> None:
                 client,
                 lake,
                 HISTORY_START,
-                M2_FREEZE_DATE,
-                prefix=M2_RAW_WEATHER,
+                snapshot.freeze,
+                prefix=snapshot.raw_weather,
             )
-    log.info("m2_snapshot_complete", donors=donors)
+    put_bytes(lake, snapshot.derived("complete"), b"done")
+    log.info("m2_snapshot_complete", root=snapshot.root, donors=donors)
 
 
-def _m2_errors(lake: pafs.FileSystem, ba: str, counties: pd.DataFrame, t: date) -> pd.Series:
-    demand, _ = _read_series(lake, ba, M2_RAW_EIA)
-    return daily_errors(demand, _features_for(lake, ba, counties, M2_RAW_WEATHER), t)
+@ingest_app.command("m2")
+def ingest_m2() -> None:
+    """Takes the M2 snapshot once. Weather is rate limited, so this can take days and can resume."""
+    require_unlocked(date.today())
+    targets = sorted({str(item["ba"]) for item in (*M2_PRIMARY, *M2_SECONDARY)} - {"AEP"})
+    _take_snapshot(M2_SNAPSHOT, targets, include_aep=True)
+
+
+def _early_item() -> dict[str, Any]:
+    return next(dict(item) for item in M2_PRIMARY if item["site"] == M2_EARLY_SITE)
+
+
+@ingest_app.command("m2-early")
+def ingest_m2_early() -> None:
+    """Amendment 5's snapshot: the early site's grid and the control grids, nothing else."""
+    require_early_unlocked(M2_EARLY_SITE, date.today())
+    _take_snapshot(M2_EARLY_SNAPSHOT, [str(_early_item()["ba"])], include_aep=False)
+
+
+def _require_complete(lake: pafs.FileSystem, snapshot: Snapshot) -> None:
+    """A partial pool would change the placebo, so no estimate exists until the pull finishes."""
+    if not exists(lake, snapshot.derived("complete")):
+        raise typer.BadParameter(f"The {snapshot.root} snapshot has not finished.")
+
+
+def _m2_errors(
+    lake: pafs.FileSystem, ba: str, counties: pd.DataFrame, t: date, snapshot: Snapshot
+) -> pd.Series:
+    demand, _ = _read_series(lake, ba, snapshot.raw_eia)
+    return daily_errors(demand, _features_for(lake, ba, counties, snapshot.raw_weather), t)
 
 
 def _m2_site(
@@ -571,21 +625,22 @@ def _m2_site(
     counties: pd.DataFrame,
     donors: list[str],
     nulls: pd.DataFrame,
+    snapshot: Snapshot,
+    include_plus: bool = True,
 ) -> SiteResult:
     ba, t = str(item["ba"]), item["start"]
+    offsets = [("main", 0), ("lead", -M2_LEAD_DAYS), ("minus", -M2_SHIFT_DAYS)]
+    if include_plus:
+        offsets.append(("plus", M2_SHIFT_DAYS))
     errors = {
-        name: _m2_errors(lake, ba, counties, t + timedelta(days=offset))
-        for name, offset in (
-            ("main", 0),
-            ("lead", -M2_LEAD_DAYS),
-            ("minus", -M2_SHIFT_DAYS),
-            ("plus", M2_SHIFT_DAYS),
-        )
+        name: _m2_errors(lake, ba, counties, t + timedelta(days=offset), snapshot)
+        for name, offset in offsets
     }
-    demand, _ = _read_series(lake, ba, M2_RAW_EIA)
-    donor_errors = {code: _m2_errors(lake, code, counties, t) for code in donors}
+    demand, _ = _read_series(lake, ba, snapshot.raw_eia)
+    donor_errors = {code: _m2_errors(lake, code, counties, t, snapshot) for code in donors}
     donor_peaks = {
-        code: peak_of(_read_series(lake, code, M2_RAW_EIA)[0], M2_FREEZE_DATE) for code in donors
+        code: peak_of(_read_series(lake, code, snapshot.raw_eia)[0], snapshot.freeze)
+        for code in donors
     }
     return score_site(
         str(item["site"]),
@@ -594,7 +649,7 @@ def _m2_site(
         float(str(item["expected_mw"])),
         errors,
         nulls[nulls["ba"] == ba].sort_values("order")["estimate_mw"].to_numpy(),
-        peak_of(demand, M2_FREEZE_DATE),
+        peak_of(demand, snapshot.freeze),
         donor_errors,
         donor_peaks,
     )
@@ -605,9 +660,35 @@ def analyze_event_study(output: Path = Path("docs/m2_event_study.md")) -> None:
     """Runs once on the M2 snapshot. Amendment 4 fixes every rule, including the labels."""
     require_unlocked(date.today())
     lake = open_lake(Settings())
-    counties = get_frame(lake, M2_COUNTIES_KEY)
-    donors = get_frame(lake, M2_DONORS_KEY)["ba"].tolist()
+    _require_complete(lake, M2_SNAPSHOT)
+    counties = get_frame(lake, M2_SNAPSHOT.derived("counties.parquet"))
+    donors = get_frame(lake, M2_SNAPSHOT.derived("donors.parquet"))["ba"].tolist()
     nulls = get_frame(lake, ESTIMATES_KEY)
-    primary = with_labels([_m2_site(lake, dict(i), counties, donors, nulls) for i in M2_PRIMARY])
-    secondary = [_m2_site(lake, dict(i), counties, donors, nulls) for i in M2_SECONDARY]
-    output.write_text(render_event_study(primary, secondary, len(donors)))
+    primary = []
+    for item in M2_PRIMARY:
+        result = _m2_site(lake, dict(item), counties, donors, nulls, M2_SNAPSHOT)
+        if item["site"] == M2_EARLY_SITE and exists(lake, M2_EARLY_RESULT_KEY):
+            early = result_from_frame(get_frame(lake, M2_EARLY_RESULT_KEY))
+            result = keep_early_result(early, result)
+        primary.append(result)
+    secondary = [
+        _m2_site(lake, dict(item), counties, donors, nulls, M2_SNAPSHOT) for item in M2_SECONDARY
+    ]
+    output.write_text(render_event_study(with_labels(primary), secondary, len(donors)))
+
+
+@analyze_app.command("event-study-early")
+def analyze_event_study_early(output: Path = Path("docs/m2_early_los_lunas.md")) -> None:
+    """Runs once, under Amendment 5. The stored result stops a second run for a better answer."""
+    require_early_unlocked(M2_EARLY_SITE, date.today())
+    lake = open_lake(Settings())
+    require_first_run(exists(lake, M2_EARLY_RESULT_KEY))
+    _require_complete(lake, M2_EARLY_SNAPSHOT)
+    counties = get_frame(lake, M2_EARLY_SNAPSHOT.derived("counties.parquet"))
+    donors = get_frame(lake, M2_EARLY_SNAPSHOT.derived("donors.parquet"))["ba"].tolist()
+    nulls = get_frame(lake, ESTIMATES_KEY)
+    result = _m2_site(
+        lake, _early_item(), counties, donors, nulls, M2_EARLY_SNAPSHOT, include_plus=False
+    )
+    put_frame(lake, M2_EARLY_RESULT_KEY, result_to_frame(result))
+    output.write_text(render_early_result(result, len(donors)))

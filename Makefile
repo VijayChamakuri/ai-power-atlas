@@ -1,4 +1,4 @@
-.PHONY: setup up down lint test dbt-ci dbt-build ci sources-check ingest analysis pipeline paper lake-export lake-restore lake-sample m2 clean
+.PHONY: setup up down lint test dbt-ci dbt-build ci sources-check ingest analysis pipeline paper lake-export lake-restore lake-sample m2 m2-early clean
 
 DBT_ARGS := --project-dir dbt --profiles-dir dbt --no-use-colors
 
@@ -74,6 +74,11 @@ lake-sample:
 m2:
 	uv run atlas ingest m2
 	uv run atlas analyze event-study
+
+# Amendment 5: Meta Los Lunas only. Runs once, then refuses.
+m2-early:
+	uv run atlas ingest m2-early
+	uv run atlas analyze event-study-early
 
 clean:
 	rm -rf .mypy_cache .pytest_cache .ruff_cache
