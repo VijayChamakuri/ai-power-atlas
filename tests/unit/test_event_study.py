@@ -23,15 +23,18 @@ def null() -> np.ndarray:
     return np.array([step_estimate(centered, t) for t in dates])
 
 
-def test_estimates_are_locked_as_committed() -> None:
-    assert config.M2_AMENDMENT_APPROVED is False
-    with pytest.raises(es.EventStudyLockedError, match="not been approved"):
-        es.require_unlocked(date(2030, 1, 1))
-
-
-def test_approval_alone_does_not_open_before_the_freeze() -> None:
+def test_nothing_runs_before_the_freeze_as_committed() -> None:
+    assert config.M2_FREEZE_DATE == date(2026, 12, 15)
     with pytest.raises(es.EventStudyLockedError, match="freeze"):
-        es.require_unlocked(date(2026, 11, 30), approved=True)
+        es.require_unlocked(date(2026, 12, 14))
+
+
+def test_lock_needs_approval_even_after_the_freeze() -> None:
+    with pytest.raises(es.EventStudyLockedError, match="not been approved"):
+        es.require_unlocked(date(2030, 1, 1), approved=False)
+
+
+def test_lock_opens_only_on_the_freeze_date_or_later() -> None:
     es.require_unlocked(date(2026, 12, 15), approved=True)
 
 

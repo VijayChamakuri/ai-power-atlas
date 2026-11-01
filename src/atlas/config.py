@@ -32,7 +32,7 @@ LIGHTGBM_PARAMS: dict[str, Any] = {
 }
 
 # M2 event study, from Amendment 4 in docs/analysis_plan.md.
-M2_AMENDMENT_APPROVED = False  # Set by Vijay's decision, in its own commit, before any M2 run.
+M2_AMENDMENT_APPROVED = True  # Set by Vijay's decision, in its own commit, before any M2 run.
 M2_FREEZE_DATE = date(2026, 12, 15)  # After Kuna's 180 days end on 2026-11-28, so revisions settle.
 M2_ALPHA = 0.05  # Holm-adjusted, one-sided, across the two primary sites.
 M2_SUPPORT_P = 0.10  # Other-grid placebo. Coarse, because the pool holds few grids.
