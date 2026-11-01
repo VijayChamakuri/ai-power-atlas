@@ -2,8 +2,24 @@
 name: ai-power-atlas
 
 x-airflow: &airflow
-  image: apache/airflow:2.10.5-python3.12
+  build:
+    context: .
+    dockerfile: docker/airflow/Dockerfile
+  image: ai-power-atlas-airflow:local
   environment:
+    # Read by the atlas CLI that tasks run. Airflow itself needs none of these.
+    EIA_API_KEY: ${EIA_API_KEY}
+    CENSUS_API_KEY: ${CENSUS_API_KEY:-}
+    MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+    MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    MINIO_ENDPOINT: minio:9000
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    ATLAS_LAKE_ROOT: s3://atlas-lake
+    ATLAS_WAREHOUSE: /opt/atlas/project/data/atlas.duckdb
+    # The checkout's owner differs from the container user, and git refuses that by default.
+    GIT_CONFIG_COUNT: "1"
+    GIT_CONFIG_KEY_0: safe.directory
+    GIT_CONFIG_VALUE_0: /opt/atlas/project
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://atlas:${POSTGRES_PASSWORD}@postgres:5432/airflow
@@ -15,7 +31,8 @@ x-airflow: &airflow
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs/airflow:/opt/airflow/logs
-    - ./src:/opt/airflow/src
+    # The whole checkout, so tasks run the code and dbt project as committed and write figures back.
+    - .:/opt/atlas/project
   depends_on:
     postgres:
       condition: service_healthy
@@ -96,6 +113,8 @@ services:
       --backend-store-uri postgresql+psycopg2://atlas:${POSTGRES_PASSWORD}@postgres:5432/mlflow
       --artifacts-destination s3://mlflow
     environment:
+      # MLflow rejects other Host headers, and Airflow tasks reach it by its service name.
+      MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:5000,localhost:5001,127.0.0.1:5001"
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
