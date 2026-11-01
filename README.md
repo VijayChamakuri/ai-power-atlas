@@ -136,7 +136,7 @@ times the BA's median, are dropped and counted.
 **Step estimate.** Test dates $t$ fall every 30 days. For each one, the model trains on data up to
 $t - 365$ days and predicts the next 545 days. With daily mean residual $r_d$:
 
-$$e(t) = \frac{1}{180}\sum_{d=t}^{t+179} r_d \;-\; \frac{1}{365}\sum_{d=t-365}^{t-1} r_d$$
+$$e(t) = \frac{1}{180}\sum_{d=t}^{t+179} r_d - \frac{1}{365}\sum_{d=t-365}^{t-1} r_d$$
 
 The last 180-day window must end before the BA's first listed site, so the real effect stays out.
 
