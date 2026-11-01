@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: dim_balancing_authority
+    description: Every grid region holding a listed site, with the selection numbers.
+    columns:
+      - {name: ba, data_tests: [unique, not_null]}
+  - name: dim_site
+    description: Epoch AI sites with power on the freeze date, and where each one is.
+    columns:
+      - {name: site, data_tests: [unique, not_null]}
+  - name: bridge_site_ba
+    description: Which grid regions each site sits inside.
+    data_tests: [has_rows]
+    columns:
+      - name: site
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: ref('dim_site'), field: site}}
+  - name: fct_detectability
+    description: Smallest step each grid can show, recomputed from the stored null estimates.
+    columns:
+      - {name: ba, data_tests: [unique, not_null]}
+  - name: fct_site_detectability
+    description: The go test for each site and candidate grid.
+    data_tests: [has_rows]
+    columns:
+      - {name: site, data_tests: [not_null]}
+      - {name: ba, data_tests: [not_null]}
+      - name: outcome
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [passes, below limit, on-site power flag, overlapping BA areas, no limit available]
+  - name: fct_baseline_accuracy
+    description: The baseline against same-hour-last-week and EIA's day-ahead forecast.
+    columns:
+      - name: benchmark
+        data_tests:
+          - accepted_values: {arguments: {values: [model, seasonal_naive, eia_day_ahead]}}
+  - name: fct_demand_hourly
+    description: One row per grid and hour. Observed values only, no model residuals.
+    data_tests: [has_rows]
+    columns:
+      - {name: ba, data_tests: [not_null]}
+      - {name: hour_utc, data_tests: [not_null]}
+  - name: fct_demand_recent
+    description: Latest revision of each hour from the rolling EIA pulls.
+    data_tests: [has_rows]
+    columns:
+      - {name: ba, data_tests: [not_null]}
+      - {name: hour_utc, data_tests: [not_null]}
