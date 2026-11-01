@@ -2,10 +2,13 @@
 
 Is AI data center growth already visible in US grid demand, and where?
 
-There is no finding yet. The repo is at milestone M1, the feasibility spike. See
-[docs/PLAN.md](docs/PLAN.md) for the plan, [docs/analysis_plan.md](docs/analysis_plan.md) for the
-method fixed before any results, [docs/source_status.md](docs/source_status.md) for what each data
-source returned on the last check, and [docs/log.md](docs/log.md) for what has been learned so far.
+There is no finding yet. Milestone M1, the feasibility spike, ended in a narrow
+[go](docs/adr/0002-m1-go-or-pivot.md): [two small-BA sites](docs/m1_detectability.md) are large enough
+to detect, and no eligible campus in PJM, ERCOT, or SOCO is large enough at BA level. No effect has
+been measured. See [docs/PLAN.md](docs/PLAN.md) for the plan,
+[docs/analysis_plan.md](docs/analysis_plan.md) for the method fixed before any results,
+[docs/source_status.md](docs/source_status.md) for what each data source returned on the last check,
+and [docs/log.md](docs/log.md) for what has been learned so far.
 
 ## Quickstart
 
