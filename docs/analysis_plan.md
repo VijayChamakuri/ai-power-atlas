@@ -178,3 +178,19 @@ A BA's 12-month peak window ends at its last hour with data, not at the freeze, 
 cannot leave out a summer peak. A BA whose data ends before its first site date is not a candidate,
 because the site's load can never appear in that series. Peaks use the same cleaned hours as the
 model. Raw peaks and dropped hours are stored next to them.
+
+### Amendment 3 (2026-11-01): scope of the secondary analysis
+
+Reason: the sub-BA section asks for every candidate region that reports zones, with a cited hand seed
+per site. M1 runs only the AEP zone, because the secondary analysis cannot change the go test and a
+seed for every zone would delay the gate. Other zones are left for M2 or for a pivot to smaller
+regions. Written before any model was fit.
+
+The AEP zone's first site date is the earliest among the sites in `dbt/seeds/sub_ba_sites.csv`. That
+list includes central Ohio sites whose utility is `estimated`, because counting them can only shorten
+the null history, not flatter the result. The AEP zone uses PJM's weather counties, because it has no
+polygon of its own, so its MDE may be overstated.
+
+Model settings not fixed above are LightGBM's usual starting values in `src/atlas/config.py`, chosen
+before any fit and never tuned. Calendar features use each BA's local time zone. Peak-hour error is the
+absolute error at each day's highest actual hour.
