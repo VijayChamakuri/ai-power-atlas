@@ -1,0 +1,91 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - services8.arcgis.com
+    method: GET
+    uri: https://services8.arcgis.com/peDZJliSvYims39Q/arcgis/rest/services/Balancing_Authorities_Summary/FeatureServer/31/query?f=json&outFields=balancing_authority_code&returnGeometry=false&where=1%3D1
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAJWXT2/aMBjGv0rkcw5007Qpt2BMGgaJFadE3agqAwa8mYQmTieE8t3rAKWaph2e
+        Q6TE9s/P+8d+7ZxItfylVjZej7Uy60TuFQlIOpwwmscj4pO21C+tunaT4ETKf4boRhwbq/YzqUvr
+        HuXG2bpVnU+2plpK8/fkjtiqaq9sfcyPh75FNbWOrk28MsdtVbpBzUFaLU2mNqpW5Ur14n9+azf5
+        3eDT3WDgEyOtamxxbvv87ctXJ7jphRoS/LwZ6vRludLl9lm2dlfV2h6fV9VaOQX7IX82sDdH2NqN
+        dZ3SaOkmIsN33gvfeY9e+ObFXD24vqV2p2rXYVS5tbveUJ+sq72LCQnK1hj3pTayNXYuTas+2ppV
+        rQ9WO7cDclqQ1753QQJvQcLlslav2jm69nqrvU1VezeXvJtLC+K70Wfvz3P31lxm6MOQ1rm2xjV0
+        pHtyQVLStrW6hEla5/Gytf3n6f/RCshjOCJd5wNE+IMLEBmxMERVGI1RZJ4lMILaNQwTiiI8zEGE
+        xiIFkXuBiuS8yFAknIKEoCxCV8vDd5AYczQnlE8ZjhQgwjgqwjKKJn484xyOF5rGaA4TWYxWlpjD
+        zse4iEjQpEwYWiWmEUNFpqMCTeMMrxJRgbpSwETC5qgnyWOMnilJMUMLHg8pmhWHoJueT2YoEcFm
+        CXin8AQ1i95zdHNFFEZGKYxwwdC7gcjQJSkofNQx9BQSMMA4uhtFCi8VUcAnioDtyuFo5fBlLWfw
+        xcD9/KBIEU5xhKK7sQgf+kr01L0BC8TSDN0NAAA=
+    headers:
+      accept-ranges:
+      - bytes
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-headers:
+      - Content-Type, Authorization, X-Esri-Authorization
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Context
+      cache-control:
+      - public, max-age=3600, s-maxage=3600
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-length:
+      - '599'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Sat, 31 Oct 2026 21:00:02 GMT
+      etag:
+      - sd3761_2019533232
+      last-modified:
+      - Sat, 31 Oct 2026 17:00:17 GMT
+      request-context:
+      - appId=cid-v1:aee5d73c-efd8-4362-94ca-2a7baad8dc01
+      strict-transport-security:
+      - max-age=63072000
+      vary:
+      - X-Esri-Authorization
+      x-arcgis-correlation-id:
+      - fd0e2cabb3c34391
+      x-arcgis-instance:
+      - 5nxvauy5s000000
+      x-arcgis-trace-id:
+      - 20261031T205829Z-179d766d854f22vjhC1CH1030c0000000e1g000000001d14
+      x-arcgis-upstream:
+      - us1h08c00-services
+      x-azure-ref:
+      - 20261031T210002Z-17dfb56f64ffthpxhC1CHIh83800000005y0000000005m5w
+      x-cache:
+      - TCP_REMOTE_HIT
+      x-cache-info:
+      - L2_T2
+      x-esri-org-request-units-per-min:
+      - usage=8;max=57600
+      x-esri-query-readonly-replica:
+      - 'true'
+      x-esri-query-request-units:
+      - '2'
+      x-esri-tiles-basic-query-mode:
+      - 'true'
+      x-esri-tiles-basic-query-type:
+      - Basic
+      x-fd-int-roxy-purgeid:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,101 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - data.sec.gov
+    method: GET
+    uri: https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/PaymentsToAcquirePropertyPlantAndEquipment.json
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAL2dW48bxxGF/wqxz2LSXX1XngQnBowglmwrD0aQB3qXKxGhyM2Sa0cw/N/TPdSl
+        p6u2OWDV0NgHLc0Zfnuqpk/PTM/h7ze3m//cvAwxKZ1e3BxX/9vv9h8+3ry8eTos361WDzflxXf5
+        9zerjx/Wu+Ph7f7V7X+fNo/rN4/7h/Xj8eOb7Wp3fLW7+1t+9aG8JW+yXf2y3lYbLY77xafNFp+3
+        e7EYtnyxWO3uFvXGd+vD7ePm4bjZ7/Iu3r5fL25Xh/eL/dPxfrv/bbE6HPa3m9Vxfbf4bXN8vzjm
+        N6zKvg+bsslif7/Y7nfvltvNr+u7F4uH9x8Pm9vVtmy3LiTvV8fFKnM8HfIeNrth+93+8UN+y+1+
+        d/d0eyy7+OXpsNmtDwP5w+M+v7xevNvv7w4D7mH9+Ovmdn36Zbc/5v0c17u7vMP7/ePicX1Ybdd/
+        yS/ebp/yXzPiP+1x9XF4Z/7Aw/Exf+Qn8MN6e7/88mLe3Qn6T1mVrM3m+PH71Yd1FuUf333z4+uf
+        Xn/7dvHN6x/fvP7x1dvvXn+f3/S02xwPNy9/v/nnT3+9efmv328Ox9XjMW8ASoVl+dHDru5OL8Wl
+        8kuj8ku/rnK5jI75xfLfi5vV7W1RP/9b62Q0uKVWSx10SGUP97lDQOn8vvuH/K5vfy6vZQ3zv/Pb
+        /l5+22zXp0/JL+QPHj7l/vGE/83P5cNv/ngxAowkYKoAQ4jP8+V3ggbrLOb7QY/4fhjx5e3ya2AQ
+        3w9mEqGGpdGfCbX/pOBzEirtXIoEInQQh+2WQCg2/J8OT7T9ivJwkGJ2gmJpqUxFCODOIOahSXsC
+        0ZxBtEuAlicV8i6PN3PiNIql3JmTFBsfpjrNeJhK8+ROUcpH9ZVHT+LR5YNxkyWipARgPWxY42Yc
+        NmRxhn2mCA7L1cUpZVeUXHgUIwnHo4bW1xvEuDjleHbJBkKwLo4ecALGQWNqg2OCv6Y6PByuOqid
+        0BCP61eI6yFVw5kBS3qI5/Ho/ON09IRkXR498LQVPBW2y2NVZ1ojLA8bh6vOuKG0wg5IF7B2HJ1C
+        uJ4Dsnm4DijNU0YPH201RMEkHhh4PCoh0WIEYG2BztsZLVAYp4yDXp0mb2O5+jh6wGnPe3LHt45M
+        E47PK5TrTRpkPZDPkzsFfPSWkKzh+fMr1GM0UWuDLZFN15sksHH4+qCman2ZKqJufDBoc1Uf5PFA
+        HtaV944QrcsDhUe35w2n0nZ5vJvTCIVxuOo0DaWRLz9TwNp3wJwZpSR9kM/D9UFpnlJsBarqKDOJ
+        x5DzFgke65y2ts8TMU6pNJomoH7SJN/4TLl/asPzZWEcWFoIoBJWq48Dw4QVTYw1niaQhCPXSaY3
+        kRF3ZS5QblwAUIGQrOvKZsBBjqexK+vWlftDqLg+PCCuPqilCMlQBaExZR+va8o8njz4eBXqMd1M
+        4jEDD/IYwK7c8ATbu5YgLA8Xh6tO01CAJwl0Acemo65oymweYVMW4GGZsjROmcqm5KtrLXaSPHaQ
+        R6OOIjqeAKxd2av++MRzZWGcXD2VonNYrj6OGeYsaEQHPEkgCcfn7s70EUVNmc2TOyWfZRlLSNbl
+        sQMPoQ/yZGjnLOqa8vBwuOqghppSQNPcwrX+upbM48k7dUHFSEjW5bHDiTvSx2BPbnjONZSoPFwc
+        rjpNQxk8RaALWHuOBde7fi1syQI8kpbMxuFasjSPy2dGEOtyuUk8bjYe40z4wrN72m5PPJ/+9Uy5
+        Tjcm0JVXZDCG5KunCBpM7+Iwd44gzWOXJipwgOvX57Hkuqo8IkyTbGSCkM4M6aJzBDZPbl1QxmlC
+        si6PG3jQkGDwJKHh0aG7bElcHyYPVx/UUlO63ja3uXX34qf8LIHHU5DyWyjJujxu4EEltHia0PDk
+        T+63lKg+bB6uPk1LWTxvoUtYG4+zcc5zZWkeYWMW4GEZszSOX3oPo0sHfpI8nly4qKmWJwDHxtxd
+        kM01ZmmeUj8VdMSC9XlOBWwXx+ZDcBri2JhDmNN4pHn8Mg9aETQhWZfHk6sFT5Xt8ujP14evpA+T
+        h6sPaqkpR6FrjfnMXE/amHk8fpnnEVCvZ/aTePzAg0Z1h4254dGmu9ZFWB82D1efpqUcnijQJRw5
+        T7K9+6LCxizAI2nMbByuMUvxOG9dKotN89ZlGPvKEybx5O1iHm9RRxEtTwCOjNm43tIErjFL8/hl
+        sBCSx4L1eTy9otLhiQKJOF42b+KcxiPFU/WYUr4etcIknkAbs8PG3PCAgv4xKKzPhTxS+qCWQhMF
+        ooR+bDzOx95qDnljvoynliy4ek1smMQTBh40rHtszA0PmO6TBcL6XMwjpU/TUh5PFOgS1s4Tje3P
+        9USd8GIeKSeU5sk71Un56gw5TuKJAw+6KISGUU8C1k4I5ybrPCeU4qkKWBg0FqzPEwYeNIx67Mwk
+        4nhNXD5ZuJ4Tsnlyo+R6QiIk6/KU3iQm6x47YcOj09lhXVQfJg9XH9RSyJmJEobGCaOl5qPzOSGP
+        p0iWTL3GJE7iiQMPKmHAThjaRZWJuhI6kz5sHq4+TUsF7Mx0CUfOk1v6ek7I5uE6oTRPyn9kSPW1
+        6zSJJw08aFSgeowAHDsheYtSygmleUpX2JgMFqzPE+mVgwE7M4k4dsKg5xzppXlS4TGJ6LE+zxAS
+        gtcJBeyEDQ+4eG5YF9WHycPVB7UUcmaihLFZr+7J+Jf5nJDHU/50CPUJV5rEk+i73hE7YcMD9BM0
+        M+nD5uHq07RUxM5Ml3D09LumM3xmskI+ENcLpYGgBELYVC1ohEkBCkAnfeE1qjhTSDdJX8arOc1Q
+        mqdkSOUJcsKC9Xno6DGNo8doxNFgH4w6M+GSNEMuT+mVXEOnCMl6PHDKyUFPRuEotJbHBEWtCp1N
+        Hx4PWx/UUlO6vslCSzHMOdgL8wx/egrVbdOvkvV44JSUg1oKZ8W1POB87zRVWB8uD1ufpqVweN0z
+        JRxZTz7Ezmgm6YVsILYXigOVVIhUr6eASSkKcEpRwFUk2owgHJmhIdfNSZmhMM/QviFV19hhUpwQ
+        KHrBP07UoxFHg72nH7qZyQzZPLrwGE1J1uXR9DVkHGLX8hhnz5RQVh8mD1cf1FLUYN+UENoUO+XT
+        mQmEsBsygXS5ohYTMXD1gTR5FRlwkF0LZIK/nkB8Hq4+46YCnKz3TA1H5uOs7dzsknZDPhDXDcWB
+        TiEioeqqSfkFAOSqcXSLF3CqDzRpdjadO7Fg2aE0T66E06k68YJJMT6gyVvOgOP1aMTxM9Yqnmky
+        QTvk88DAA5aQrMtziqlp1xcCTrNreazunniJ68Pk4eqDWqq1Z6qEbZhdZjwzxRJ2QyZQ+eOdD44Q
+        rQsE5KVkwHl2LZDLf/71BGLzcPVpmgoH7D1Tw1EYiyrLva7lhgJAXDeUAlLJqdz++fRyWR5vqULj
+        YFJ2AAxPk+FJFqohDtSBJkXOfR7a57FDaZ6SL5WPjIAF6/MMwSZ4LMWxdjTieIWRzsfd9fyQD2TK
+        GqxgDCFaF4gOiQGcI9cCudi98icuEJOHqw9qKkIyVMM2SC5knqv64WVA9dClrQVKtC7QEBSDi4iz
+        5Fog9/lW71UEupRHTJ+mqXC43TM1HKelxd6SC2k/vBhIzA/Fgewym020VRUnPSQPlrzCIAKkDYQv
+        Ck18+A2G51zREnL0MBXgOBtoE+WATLyUMmghnrqjyoP1Dhewz0NH3AGOuKMRx/4MjowAmsmfLwaq
+        u17FqC0hWhfIknefAafKtUAeumfQ4gJdxiOmD2qqKTVsctN00tT3RMzoz0ygErUSoYpogUkRLWBp
+        IJws1wJ5T13pm0sgNg9Xn6apcNTdMzUcuU8++zqjmaQ/84GE/VkCiOXP4jzlUda8UeV/kx7eB0cu
+        nkP3wwHn2kCT55aSPtNSLIOW5smV0DH5gAXr8wzhIoRgeMJAIjbPMJHrfufyZz5QicFQtr46Oimo
+        BRx5RxxwolsLlAL1tYXzCcTk4eqDmmpK3zeJZUZ5dV1/ZgKV2IusmidE6wINUS24iDjTrQXS+aPP
+        HHaSCvGBuAo1bYVT5p6p4ije1Frq693mcmgJIEmH5vNwHVoK6PNT4JDfCyZPVr8CTXqMHzy5pA9b
+        NE64gTbZzSbondRzPVoK6Itk5cebKn8EJkXafPp6QSwZnjSQjONFYipAv89EPfpioKrPVPkyhECI
+        1gWiQ1sAp7u1QNrFc4Yjq9CFQGIKobaaciy2+W7BUpmBM7r0ZUCVaDppR4rWBfL0Qjqc8NYCaR+o
+        5ZlzKXQxkJhCTVvhzLlnqlibkC8h9ddzxYuB5nJFNBvE6TLQxpglk3qjBdeExIH80hqv68u2k+Jk
+        wJNfHg84WI1mbL7SDMh1RjOZEE4Oa4Egxd5XpEuP+Tg6jBKtiaKKSpOJIDMNsTgbqwUy6pxooiMa
+        Dsd6RrTxY6wu2U6imPQIgm5Z4xQMaOKWTDLkmu+ZDtghb+nff/zxf8A9rxnXiQAA
+    headers:
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-length:
+      - '3354'
+      content-type:
+      - application/json
+      date:
+      - Sat, 31 Oct 2026 15:41:45 GMT
+      strict-transport-security:
+      - max-age=31536000 ; preload
+      vary:
+      - Accept-Encoding
+      x-amz-apigw-id:
+      - GHbY-Fp2IAMEvUg=
+      x-amzn-requestid:
+      - a15d1ff7-1135-42ae-80fa-5dd1bd9566b4
+      x-amzn-trace-id:
+      - Root=1-6ae60c38-f2514548fb168bc325bdbab7
+    status:
+      code: 200
+      message: OK
+version: 1

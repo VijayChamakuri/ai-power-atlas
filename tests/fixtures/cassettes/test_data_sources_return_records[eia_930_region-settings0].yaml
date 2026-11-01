@@ -1,0 +1,75 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.eia.gov
+    method: GET
+    uri: https://api.eia.gov/v2/electricity/rto/region-data/data/?frequency=hourly&length=1&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=desc
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3VSTW/bMAz9K4TOdmJna4vmFizp2gHdCrQoUMw7sBLjCLAlT6KbGUH++yjHOQTY
+        dNAXvx7f40HtMTjr6qiWPw/nh1oq67Rvu4aYIBD3walMGYo62I6td+LxsiNYPT2ARgfeNcPkB1dF
+        UUDw+wjWwbfnH99h60OLPAN4aggjgfYuWkNhvHBAm2rC4PsgOX73FBn2lnewRU2cQWQMcvgA5Mx4
+        9jEF+O02EgN76LC2DkeosW84ztTxV6bk0UkBUsuDYs/YCOjy9vrq6vamTN1IwN2ITP7fZOWPj/l6
+        XamXSt3fLz6Ly3aE4/QgHjuB1wynOBzJ6ihYb8S0KBbXeVnmRflS3KhzYUMuZV69ri6+coctpf8P
+        K43BFx86H3DkNFM8dMm2vpvuZ+c1DjnuCA0YatGZRClpjCx+H9j0lPfOsmioWqpxj8wJbhxpuFTt
+        fmxjSpOB+V/iDJxwW5OjE7gMktU6pqB36GqC9wHesUGnkxbYS8VgeRCVKweynqWQpiUkimHzsMpv
+        PxUny1Pwpte8hAnLpiHNwWr4GqyBRy+d+KCOibRxGJJ+MowJnjRQzT8W1ZymGKlYzQN72agWmHlS
+        p5qfdiGnw4BtTBn+qWVDruZdmgt5RB94FFb7pm8TWZPCwqEVViYGE59C7FEAYmdfKcTT/2JWzso0
+        NZs/mpqVMQ/u0lio41+kRkZPbwMAAA==
+    headers:
+      access-control-allow-headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Params
+      access-control-allow-methods:
+      - GET,POST
+      access-control-allow-origin:
+      - '*'
+      age:
+      - '0'
+      alt-svc:
+      - h3=":443"; ma=93600
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-length:
+      - '535'
+      content-type:
+      - application/json
+      date:
+      - Sat, 31 Oct 2026 15:41:43 GMT
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      vary:
+      - Accept-Encoding
+      - Accept-Encoding
+      via:
+      - https/1.1 api-umbrella (ApacheTrafficServer [cMsSf ])
+      x-api-umbrella-request-id:
+      - d1iafrdspa6gphoq3ov0
+      x-cache:
+      - MISS
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-powered-by:
+      - PHP/8.2.35
+      x-ratelimit-limit:
+      - '10'
+      x-ratelimit-remaining:
+      - '2'
+      x-vcap-request-id:
+      - adc253f4-efe7-4226-5093-23164035d1d6
+    status:
+      code: 200
+      message: OK
+version: 1

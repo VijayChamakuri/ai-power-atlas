@@ -1,0 +1,40 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - archive-api.open-meteo.com
+    method: GET
+    uri: https://archive-api.open-meteo.com/v1/archive?end_date=2026-10-24&hourly=temperature_2m&latitude=39.77&longitude=-86.16&start_date=2026-10-23
+  response:
+    body:
+      string: !!binary |
+        eJxklE1u2zAQhe/CNU1whkOR8jaLrrLzLggEO2FSAbZU2FKANPCdeoaerBxF+UHfgiPpcYbvAR+o
+        N3PcT/00PxazDa1LMbSRrTmOw/OqbnLjiNrGmucylHPtHoepP5XudDFb73wIIeXGk0/ClFO0Zp4e
+        uvHp6VKm7lIexuFRG63Rod/jUI80P2535kvo9ofDubz0y9Gfu+VYXlaFufpY83Ocz8fXbh76qZ74
+        tszX9v4yqr8eWE6/NOF8Lh2f6tbfPzfm+jH4NXJn2HOzIb/hsPN+630d/i4RSoxSQElQiig1KCWU
+        MkotSITpCdMTpidMT5ieMD1hesL0hOkJ0zOmZ0zPmJ7/Ty/IUZCjIEdBjoIcBTkKchTkKMhRkKMg
+        R0GOghwFOQpyFOQoyFGQoyBHQY6CHAU5CnKUleM9Xt07auqVp+jEkrhoKbjGEmshl212rW0d1eWX
+        91xbcv1ulmfUJtbBOp20aF/9iYiW/FmibkRtIbWKaxF1CS5p8Woaqk9ryS+GshqmuqQa5g/DsE6u
+        hqwOvHrRu3/SjVZb0v31+g8AAP//AwCFUDMH
+    headers:
+      connection:
+      - keep-alive
+      content-encoding:
+      - deflate
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Sat, 31 Oct 2026 15:41:43 GMT
+      transfer-encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+version: 1

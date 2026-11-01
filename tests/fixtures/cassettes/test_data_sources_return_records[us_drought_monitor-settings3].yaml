@@ -1,0 +1,37 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - usdmdataservices.unl.edu
+    method: GET
+    uri: https://usdmdataservices.unl.edu/api/CountyStatistics/GetDroughtSeverityStatisticsByAreaPercent?aoi=18097&enddate=10%2F31%2F2026&startdate=10%2F03%2F2026&statisticsType=1
+  response:
+    body:
+      string: "MapDate,FIPS,County,State,None,D0,D1,D2,D3,D4,ValidStart,ValidEnd,StatisticFormatID\r\n20261027,18097,Marion
+        County,IN,0.00,100.00,61.95,0.00,0.00,0.00,2026-10-27,2026-11-02,1\r\n20261020,18097,Marion
+        County,IN,11.54,88.46,0.00,0.00,0.00,0.00,2026-10-20,2026-10-26,1\r\n20261013,18097,Marion
+        County,IN,100.00,0.00,0.00,0.00,0.00,0.00,2026-10-13,2026-10-19,1\r\n20261006,18097,Marion
+        County,IN,100.00,0.00,0.00,0.00,0.00,0.00,2026-10-06,2026-10-12,1\r\n20260929,18097,Marion
+        County,IN,100.00,0.00,0.00,0.00,0.00,0.00,2026-09-29,2026-10-05,1\r\n"
+    headers:
+      content-type:
+      - text/csv; charset=utf-8
+      date:
+      - Sat, 31 Oct 2026 15:41:43 GMT
+      server:
+      - Microsoft-IIS/10.0
+      transfer-encoding:
+      - chunked
+      x-powered-by:
+      - ASP.NET
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,83 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - emp.lbl.gov
+    method: GET
+    uri: https://emp.lbl.gov/queues
+  response:
+    body:
+      string: !!binary |
+        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
+        gqM90BqcvtwsgdA6mG8zE/PVcfpf1EAivTQWAAA=
+    headers:
+      cache-control:
+      - private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+      cf-ray:
+      - a533c407a8e461d5-ORD
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-type:
+      - text/html; charset=UTF-8
+      date:
+      - Sat, 31 Oct 2026 15:41:45 GMT
+      expires:
+      - Thu, 01 Jan 1970 00:00:01 GMT
+      referrer-policy:
+      - same-origin
+      server:
+      - cloudflare
+      transfer-encoding:
+      - chunked
+      x-frame-options:
+      - SAMEORIGIN
+    status:
+      code: 403
+      message: Forbidden
+version: 1

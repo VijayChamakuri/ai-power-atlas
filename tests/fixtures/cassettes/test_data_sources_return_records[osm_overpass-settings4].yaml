@@ -1,0 +1,44 @@
+interactions:
+- request:
+    body: data=%5Bout%3Ajson%5D%5Btimeout%3A25%5D%3Bnwr%5B%22telecom%22%3D%22data_center%22%5D%2839.6%2C-86.4%2C40.0%2C-85.9%29%3Bout+count%3B
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '132'
+      content-type:
+      - application/x-www-form-urlencoded
+      host:
+      - overpass-api.de
+    method: POST
+    uri: https://overpass-api.de/api/interpreter
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEA1VQy2rDMBC8+ysWnRthOeRBboVeCoX0kFNLCWtr4xhsyUjrmBDy712phLYnrWZn
+        RjO6FQDqQiF23qkdlHr9lJCWHAVkHwRTe9mPGCM8v78KY6PXlTYGtpv6hNZsVVb4OCyjsG8iFwPu
+        BoqMw3iUxbHGSMmpKqv1wpSLpTmY1W5ldmX1keWiaPx4DV175kQ8nAksMkLnmn6yZGUAPncRrG+m
+        gRyDzKfgB5jnWfuRXORAxAOO2odWw69DhAEtAV6w67HuCSZnKcD+pX7TStLec37qKdmmCp9FkVoo
+        vo45deMnxz8tOyv7MgsY2z99nbeUrqp89JnxmgHzAAL1yPLN/2nsGfskNDlLcS/k6S85vgHRiG0l
+        mgEAAA==
+    headers:
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-type:
+      - application/json
+      date:
+      - Sat, 31 Oct 2026 15:52:11 GMT
+      server:
+      - nginx
+      transfer-encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+version: 1
