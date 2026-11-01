@@ -1,6 +1,10 @@
 import io
 import zipfile
 
+import httpx
+import pytest
+
+from atlas.ingest import geo
 from atlas.ingest.geo import Point, earth_point, parse_zcta_centroids, zip_point
 
 CENTROIDS = {"68138": Point(-96.1, 41.1), "14651": Point(-77.6, 43.1)}
@@ -43,3 +47,16 @@ def test_parses_gazetteer_with_padded_header() -> None:
     with zipfile.ZipFile(buffer, "w") as archive:
         archive.writestr("2024_Gaz_zcta_national.txt", text)
     assert parse_zcta_centroids(buffer.getvalue()) == {"00601": Point(-66.749961, 18.180555)}
+
+
+def test_error_body_with_status_200_is_retried(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Shape of the failure seen from Esri's layer during a full pipeline run on 2026-11-01.
+    answers = [
+        httpx.Response(200, json={"error": {"code": 400, "message": "Unable to complete"}}),
+        httpx.Response(
+            200, json={"features": [{"attributes": {"balancing_authority_code": "PJM"}}]}
+        ),
+    ]
+    monkeypatch.setattr(geo.lookup_bas.retry, "sleep", lambda _: None)
+    with httpx.Client(transport=httpx.MockTransport(lambda _: answers.pop(0))) as client:
+        assert geo.lookup_bas(client, Point(-86.5, 41.6)) == ["PJM"]

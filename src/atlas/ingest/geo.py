@@ -23,8 +23,13 @@ BA_LAYER_URL = (
 EARTH_LINK = re.compile(r"earth\.google\.com/web/(?:search/[^@\s)]*/)?@(-?\d+\.\d+),(-?\d+\.\d+)")
 SEEDS = Path(__file__).parents[3] / "dbt" / "seeds" / "site_locations.csv"
 
+
+class ServiceBusyError(RuntimeError):
+    """ArcGIS can answer a failed query with HTTP 200 and an error body instead of a status code."""
+
+
 retry_transient = retry(
-    retry=retry_if_exception_type((httpx.TransportError, httpx.HTTPStatusError)),
+    retry=retry_if_exception_type((httpx.TransportError, httpx.HTTPStatusError, ServiceBusyError)),
     stop=stop_after_attempt(5),
     wait=wait_exponential(min=2, max=60),
     reraise=True,
@@ -94,9 +99,10 @@ def lookup_bas(client: httpx.Client, point: Point) -> list[str]:
         },
     )
     response.raise_for_status()
-    return sorted(
-        feature["attributes"]["balancing_authority_code"] for feature in response.json()["features"]
-    )
+    body = response.json()
+    if "features" not in body:
+        raise ServiceBusyError(str(body.get("error", "response had no features")))
+    return sorted(feature["attributes"]["balancing_authority_code"] for feature in body["features"])
 
 
 def locate_site(
