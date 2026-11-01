@@ -194,3 +194,71 @@ polygon of its own, so its MDE may be overstated.
 Model settings not fixed above are LightGBM's usual starting values in `src/atlas/config.py`, chosen
 before any fit and never tuned. Calendar features use each BA's local time zone. Peak-hour error is the
 absolute error at each day's highest actual hour.
+
+### Amendment 4 (2026-11-01): M2 event study
+
+Approved by Vijay Shankar Chamakuri on 2026-11-01.
+
+Reason: the outline for M2 requires these details to be fixed before any residual is computed at a real
+start date. Written after M1's detection limits and null windows were seen. No residual on or after a real
+start date had been computed.
+
+**Primary tests, fixed now.**
+
+| Site | Grid | Start date `T` | Expected step | Null windows |
+|---|---|---|---|---|
+| Meta Kuna | Idaho Power (IPCO) | 2026-06-01 | 198 MW | 48 |
+| Meta Los Lunas | PNM | 2026-03-01 | 114 MW | 45 |
+
+Los Lunas uses 114 MW, not 147 MW, because Epoch's 147 MW starts on 2026-10-26, after its 180-day window ends.
+Start dates stay as frozen in M1, even if Epoch changes them later. Other sites are secondary.
+
+**Data.** A new snapshot with a freeze of 2026-12-15, two weeks after Kuna's window closes so EIA's revisions
+can settle. Its hash goes in `docs/log.md`. Both primary tests run once, together, on that snapshot.
+
+**Estimate.** The M1 step estimate at `T`: train up to `T - 365` days, then take mean error in the 180 days from
+`T` minus mean error in the 365 days before `T`. Nothing about the model changes.
+
+**Test.** One-sided rank test against that grid's M1 null windows: `p = (1 + count(null >= e(T))) / (1 + N)`.
+Holm correction across the two primary sites, at 5%. With 48 and 45 windows, the smallest possible values are
+about 0.020 and 0.022, so significance is possible but only if a site beats every null window.
+
+**Interval.** 90% interval by inverting the placebo test: `e(T) - q95(null)` to `e(T) - q05(null)`.
+
+**Other-grid placebo.** The same estimate at the same `T` on EIA-930 grids with no Epoch site. A grid qualifies with
+a median demand of at least 500 MW and at least 95% of hours reported, and aggregates such as `US48` are left out.
+Each estimate is scaled by that grid's peak. The rank p-value must be 0.10 or less. The count of grids is reported.
+
+**Synthetic control.** Nonnegative weights summing to 1 over the same pool, chosen to match the target's daily
+residual as a share of peak over the 365 days before `T`. The effect is the post-minus-pre gap, converted to MW. It
+is a check on direction, not a second primary test. Grids are ranked by post-to-pre error ratio for context.
+
+**Date checks.** The estimate at `T - 180` days must not cross the null's 95th percentile, because that window ends
+before the site starts. Estimates at `T - 90` and `T + 90` days are reported for sensitivity, to show how much
+depends on Epoch's dates. Meta announced Kuna's first server rack in March 2026, so load may begin before `T`.
+
+**Claims, fixed now.**
+
+| Label | Rule |
+|---|---|
+| `supported` | Holm-adjusted p below 0.05, positive estimate, lead window below threshold, other-grid p of 0.10 or less, and a positive synthetic control gap |
+| `suggestive` | Holm-adjusted p below 0.05, but any other condition fails |
+| `null` | Holm-adjusted p of 0.05 or more. Published as a null, with its interval |
+
+Even `supported` means demand rose beyond its normal range when the site started. It does not prove the site caused
+it, and other new customers could explain it. The paper must say so. The expected step is reported next to each
+estimate, and it plays no part in the label.
+
+**Secondary results, labeled and unable to change a primary label.**
+
+- Meta-QTS Hillsboro 2 on Portland General, `T` = 2023-08-02, expected 61 MW. The 243 MW in M1's table comes later, in
+  2024. With 14 null windows, its smallest possible p-value is 0.067, so it cannot be primary.
+- New Carlisle on the AEP zone, `T` = 2025-06-23, expected 1,244 MW. Its null windows end before 2024, and other zone
+  sites start in between, so an estimate there may include their load too.
+
+**Overlapping sites.** `dbt/seeds/site_ba_assignments.csv` assigns 8 of the 10 to a grid using a cited serving
+utility. No citation names a grid for Microsoft Goodyear or Meta Aiken, so those two stay excluded. These assignments do
+not touch M1's results or the primary tests, neither of whose grids has an overlapping site.
+
+**Lock.** `src/atlas/ml/event_study.py` refuses to produce an estimate until `M2_AMENDMENT_APPROVED` is true and the
+freeze date has passed. That flag changes only in its own commit, after this amendment.
