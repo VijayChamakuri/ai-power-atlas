@@ -1,14 +1,16 @@
 import io
-from datetime import UTC, datetime
+import subprocess
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import httpx
+import mlflow
 import pandas as pd
 import pyarrow.fs as pafs
 import structlog
 import typer
 
-from atlas.config import FREEZE_DATE, HISTORY_START, Settings
+from atlas.config import BA_TIMEZONES, FREEZE_DATE, HISTORY_START, LIGHTGBM_PARAMS, Settings
 from atlas.ingest.datacenters import apply_flag_seeds, build_sites
 from atlas.ingest.eia import ingest_region, ingest_sub_ba
 from atlas.ingest.files import FILE_SOURCES, snapshot, snapshot_key
@@ -16,6 +18,9 @@ from atlas.ingest.geo import SEEDS, map_sites, parse_zcta_centroids
 from atlas.ingest.weather import ingest_county, parse_counties, top_counties
 from atlas.lake.io import get_bytes, get_frame, open_lake, put_frame
 from atlas.ml.candidates import peak_demand, select_candidates
+from atlas.ml.detectability import BaResult, analyze_ba, go_test, verdict
+from atlas.ml.features import build_features, to_utc_index, weighted_weather
+from atlas.ml.report import render_results
 from atlas.source_check import USER_AGENT, render_report, run_checks
 
 log = structlog.get_logger()
@@ -24,11 +29,14 @@ app = typer.Typer(no_args_is_help=True)
 sources_app = typer.Typer(no_args_is_help=True)
 ingest_app = typer.Typer(no_args_is_help=True)
 app.add_typer(sources_app, name="sources")
+analyze_app = typer.Typer(no_args_is_help=True)
 app.add_typer(ingest_app, name="ingest")
+app.add_typer(analyze_app, name="analyze")
 
 SITES_KEY = f"derived/sites/freeze={FREEZE_DATE.isoformat()}/sites.parquet"
 SITE_BAS_KEY = f"derived/sites/freeze={FREEZE_DATE.isoformat()}/site_bas.parquet"
 CANDIDATES_KEY = f"derived/candidates/freeze={FREEZE_DATE.isoformat()}/candidates.parquet"
+RESULTS_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/sites.parquet"
 COUNTIES_KEY = f"derived/candidates/freeze={FREEZE_DATE.isoformat()}/counties.parquet"
 
 
@@ -165,3 +173,101 @@ def ingest_weather() -> None:
                 HISTORY_START,
                 FREEZE_DATE,
             )
+
+
+def _read_series(lake: pafs.FileSystem, ba: str) -> tuple[pd.Series, pd.Series]:
+    if ba == "AEP":
+        selector = pafs.FileSelector("raw/eia/region_sub_ba_data", recursive=True)
+        keys = [
+            i.path for i in lake.get_file_info(selector) if i.path.endswith("subba=AEP.parquet")
+        ]
+        frame = pd.concat([get_frame(lake, key) for key in keys], ignore_index=True)
+        frame = frame.assign(type="D")
+    else:
+        selector = pafs.FileSelector("raw/eia/region_data", recursive=True)
+        keys = [
+            i.path
+            for i in lake.get_file_info(selector)
+            if i.path.endswith(f"respondent={ba}.parquet")
+        ]
+        frame = pd.concat([get_frame(lake, key) for key in keys], ignore_index=True)
+    frame = frame.set_index(to_utc_index(frame["period"])).sort_index()
+    forecast = frame[frame["type"] == "DF"]["value"]
+    return frame[frame["type"] == "D"]["value"], forecast
+
+
+def _features_for(lake: pafs.FileSystem, ba: str, counties: pd.DataFrame) -> pd.DataFrame:
+    # The AEP zone has no polygon of its own, so it uses PJM's counties. docs/analysis_plan.md
+    # lists this as a limitation of the secondary analysis.
+    chosen = counties[counties["ba"] == ("PJM" if ba == "AEP" else ba)]
+    frames = {f: get_frame(lake, f"raw/weather/county={f}.parquet") for f in chosen["fips"]}
+    populations = dict(zip(chosen["fips"], chosen["population"].astype(float), strict=True))
+    return build_features(weighted_weather(frames, populations), BA_TIMEZONES[ba])
+
+
+def _log_run(result: BaResult, first_site: date, commit: str) -> None:
+    with mlflow.start_run(run_name=result.ba):
+        mlflow.set_tags({"git_commit": commit, "status": result.status})
+        mlflow.log_params(
+            {
+                **LIGHTGBM_PARAMS,
+                "ba": result.ba,
+                "first_site": str(first_site),
+                "dates": result.dates,
+            }
+        )
+        if result.mde_mw is None:
+            return
+        mlflow.log_metric("mde_mw", result.mde_mw)
+        for name, scores in result.scores.items():
+            mlflow.log_metrics({f"{name}_{key}": value for key, value in scores.items()})
+
+
+@analyze_app.command("detectability")
+def analyze_detectability(output: Path = Path("docs/m1_detectability.md")) -> None:
+    """Runs only the BAs the candidate rule chose, plus the AEP zone as the secondary analysis."""
+    settings = Settings()
+    lake = open_lake(settings)
+    mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
+    mlflow.set_experiment("m1-detectability")
+    commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+    ).stdout.strip()
+    candidates = get_frame(lake, CANDIDATES_KEY)
+    counties = get_frame(lake, COUNTIES_KEY)
+    sites = get_frame(lake, SITES_KEY)
+    site_bas = get_frame(lake, SITE_BAS_KEY)
+    chosen = candidates[candidates["candidate"]]
+    seed = pd.read_csv(SEEDS.parent / "sub_ba_sites.csv")
+    aep_first = sites[sites["site"].isin(seed["site"])]["first_date"].dropna().min()
+    plan = [(row["ba"], row["first_site_date"]) for row in chosen.to_dict("records")]
+    plan.append(("AEP", aep_first))
+
+    results = {}
+    for ba, first in plan:
+        demand, forecast = _read_series(lake, ba)
+        first_site = date.fromisoformat(first)
+        series_end = demand.dropna().index.max().date()
+        result = analyze_ba(
+            ba,
+            demand,
+            forecast,
+            _features_for(lake, ba, counties),
+            HISTORY_START,
+            first_site,
+            series_end,
+        )
+        results[ba] = result
+        _log_run(result, first_site, commit)
+        log.info(
+            "ba_analyzed", ba=ba, status=result.status, dates=result.dates, mde_mw=result.mde_mw
+        )
+
+    bas = pd.DataFrame(
+        [{"ba": r.ba, "mde_mw": r.mde_mw} for r in results.values() if r.ba != "AEP"]
+    )
+    table = go_test(sites, site_bas, bas)
+    put_frame(lake, RESULTS_KEY, table.drop(columns=["location_text"]))
+    output.write_text(
+        render_results(results, candidates, table, sites, seed, commit, verdict(table))
+    )
