@@ -41,3 +41,52 @@ Plan tooling not set up yet: `sqlfluff` and `nbstripout` wait for the first SQL 
 Gate decision (Vijay, 2026-10-31): start M1 with these gaps open. LBNL and FCC stay blocked for
 scripts and become manual downloads. eGRID, PJM, ERCOT, SPP, Aqueduct, and TIGER have only had their
 pages checked. Agent skills are not installed.
+
+## M1 Ingest (2026-10-31)
+
+Freeze date 2026-10-31. Snapshots are stored once under `raw/files/` and never replaced:
+
+| File | SHA-256 |
+|---|---|
+| `epoch/data_centers.csv` | `f43d33c8b7612da0a46f51ad207169ac487f54989df3acaafbb2e0453f54a5ce` |
+| `epoch/data_center_timelines.csv` | `67c983eb002c7fb48a448cb181e4d0acc6c6dcca2f46800e6b58f0a8961ac1a3` |
+| `census_zcta/zcta.zip` | `7b85c04a131672f58b38a950eb82855d5fd4054f0bd9bc3f69aa28897a714e3d` |
+| `census_counties/counties.zip` | `3c337402b5c6e8d5aa26b4278ccf4edc8989f2683765b3ffbf22296cdb2df3a0` |
+| `census_population/co-est2025-alldata.csv` | `4f5a499d851e2cb48fd7a5405e5a9235453a8a66933657aacd10df0e264f35d5` |
+
+Site mapping for the 60 US sites with power by the freeze: 29 by Census geocoder, 19 by ZIP
+centroid, 7 by Epoch's Google Earth links, 5 by hand-entered ZIP with a citation, 0 unlocated. The
+geocoder and the Earth links agreed on the BA for the 4 sites that had both. 10 sites fall inside more
+than one BA polygon and cannot satisfy the go criterion (Amendment 1).
+
+`behind_meter_risk` list, fixed before any minimum detectable MW is computed: Colossus 2, OpenAI
+Stargate Abilene, Meta Prometheus, Meta Bowling Green, Meta Hyperion, OpenAI Stargate New Mexico, from
+Epoch's text, and Colossus 1, by hand. Epoch does not mention turbines at Colossus 1, but
+[DCD reports](https://www.datacenterdynamics.com/en/news/campaigners-appeal-decision-to-permit-gas-turbines-at-xais-memphis-data-center/)
+a permit for 15 gas turbines at xAI's Memphis site.
+
+LightGBM's macOS wheel needs `libomp`, and this Mac has no Homebrew. `scripts/link_libomp.sh` points
+LightGBM at the copy inside scikit-learn's wheel, changing only `.venv`.
+
+EIA-930 region data: 2,861,089 rows of `D` and `DF` for 21 BAs, plus 68,354 sub-BA rows for PJM's AEP
+zone, 2019-01 to the freeze. WACM has no rows after 2026-04-02 (Amendment 2). Hours with no value are
+kept as nulls: SRP has the most, 243 of about 68,600.
+
+Candidates from the 2% rule: WALC, SRP, AZPS, PGE, PNM, PACW, IPCO, TVA, BPAT, SWPP, PJM, SOCO, ERCO,
+NEVP. WACM passes on share but its data ends before Meta Cheyenne starts. MISO misses at 1.76%. WALC's
+31% share comes only from three Phoenix-area sites inside overlapping polygons, so it cannot produce a
+go by itself.
+
+Weather: 121 counties, 8,308,344 hourly rows from Open-Meteo, 2019-01-01 to the freeze, with no null
+temperatures. AZPS, SRP, and PGE have fewer than 10 counties whose centroid falls inside their polygon
+(6, 1, and 4), so they use what exists. SRP's one county is Maricopa. WACM's counties were pulled before
+Amendment 2 dropped it and are unused.
+
+Parquet snapshots hold too many files to list. Each hash below is the SHA-256 of the sorted lines
+`<file sha256>  <key>` for every file under that prefix:
+
+| Prefix | Files | SHA-256 |
+|---|---|---|
+| `raw/eia/region_data/` | 1,968 | `bd2356744ea5c9bb5c35b863e354e3455a90a7e1d4cfc1fb1341cb5ad28b89b8` |
+| `raw/eia/region_sub_ba_data/` | 94 | `31453db35c06720bd89919eb0cab531aa9a2d02ddfc9d0ce77a2724734a2dd69` |
+| `raw/weather/` | 121 | `0beab0215a9ca193b7b10f97efa6078abe26baa8deab374945f8f041b8ed6a9b` |
