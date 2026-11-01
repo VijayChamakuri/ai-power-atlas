@@ -161,3 +161,44 @@ control grids can take several days, because Open-Meteo limits daily use and the
 before any listed site, the new path reproduced IPCO's stored estimate of -21.5275 MW. A dry run at a made-up start
 date of 2023-01-01 labeled both grids `null`, and that output was discarded. Fixed in Amendment 4, the real run
 happens once.
+
+## dbt and Airflow (2026-11-01)
+
+dbt now builds a DuckDB warehouse from the lake, and Airflow runs the pipeline. Neither changes how results are
+computed: the analysis stays in Python, and dbt reads what Python stored and checks it.
+
+SQL matched Python on every first run, which is reason to doubt the checks. So thresholds were changed on purpose. A
+bad-value multiple of 1.2 failed 21 peak rows. A power quantile of 0.3 failed 10 limit rows. A candidate share of 0.03
+failed too. A 5-date minimum changed nothing, because every grid in the stored estimates has at least 14 dates, so
+that rule is not independently checked.
+
+Airflow gets its own image with the project in a separate venv, because Airflow's constraints pin older packages.
+`atlas_rebuild` failed three times before it passed, on a restored copy of the lake in a test bucket:
+
+1. The test bucket did not exist, and a filter in the run script hid the restore error.
+2. MLflow rejected the `mlflow:5000` Host header, which it now allows. Git also needed `safe.directory`, because the
+   checkout's owner differs from the container user.
+3. Linux killed the analysis, because the 4 GB VM had about 215 MB free and the analysis peaks near 570 MB. With the
+   web UI stopped it passed, in 16 minutes. A larger VM should also work, but was not tried.
+
+That run compared to the frozen results as follows:
+
+| Output | Difference |
+|---|---|
+| Sites, BA assignments, candidates | None |
+| Limits, go test, accuracy scores | Under 1e-9 |
+| Null estimates | Up to 0.01 MW, in ERCOT. Seven grids matched to six decimals |
+| `Injected` rate for TVA | 0.81 against 0.77. It is the only changed cell besides the commit ID |
+| County table | 121 rows against 131, because the frozen table still lists WACM's 10 counties. WACM stopped being a candidate under Amendment 2 and never had a limit |
+| All 8 figures | Different files, because macOS fonts are missing on Linux. Numbers shown were not compared one by one |
+
+The Linux files were discarded, so the committed results and figures still come from macOS. The same analysis rerun
+on macOS on that bucket matched except for the commit ID, in 75 seconds.
+
+`atlas_eia_recent` ran end to end in 24 seconds. It stays paused, because it spends API calls every hour and adds
+one small file each time. `atlas_m2_event_study` also stays paused, so a person starts the locked test. Its first task
+was run on 2026-11-01 and stopped with `The M2 freeze date is 2026-12-15`. Its later steps cannot be tested before
+then. No API key appeared in the Airflow or dbt logs.
+
+The plan's `dbt-expectations`, `elementary`, and semantic metrics are not used. Models for grid stress, carbon,
+site scores, and M2 results are not built, and neither is the Streamlit app.

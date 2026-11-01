@@ -333,9 +333,10 @@ make pipeline
 
 | Command | What it does |
 |---|---|
-| `make up` | Starts Postgres, MinIO, Airflow, and MLflow |
-| `make ci` | Runs ruff, `mypy --strict`, and the tests, with network access blocked |
+| `make up` | Starts Postgres, MinIO, Airflow, and MLflow. The first run builds a 3.6 GB Airflow image |
+| `make ci` | Runs ruff, `mypy --strict`, sqlfluff, the tests with network access blocked, and dbt on a real data slice |
 | `make pipeline` | Pulls every source, runs the analysis, and draws the figures. About an hour |
+| `make dbt-build` | Builds the warehouse from the lake and runs its checks. Needs `make up` and the frozen data |
 | `make sources-check` | Rewrites `docs/source_status.md`. Exits 1 while LBNL and FCC block scripted requests |
 
 Local services are MLflow at <http://localhost:5001>, Airflow at <http://localhost:8080>, and the MinIO console
@@ -354,6 +355,29 @@ make analysis
 
 The restore checks a hash for every file and writes nothing if any file is damaged. `make paper` rebuilds the
 PDF, and needs Google Chrome. `make m2` runs the next stage and refuses to start before 2026-12-15. [docs/log.md](docs/log.md) records the rebuild checks and input hashes.
+
+### Warehouse and orchestration
+
+dbt builds a DuckDB warehouse from the lake. `fct_demand_hourly` holds 1,504,596 rows, one per grid and hour, with
+EIA's forecast and weighted weather. `fct_site_detectability` holds the go test for each site and grid. The demand
+table holds observed values only, so it cannot show an M2 result early.
+
+The marts recompute results in SQL and compare them to what Python stored. Each grid's peak, each detection limit,
+the candidate rule, and every go test verdict must match, or [`make dbt-build`](dbt/tests/) fails. All 87 models and
+checks pass on the full lake, and wrong thresholds made 3 of 4 trial runs fail as they should. The fourth, the
+12-date minimum, cannot fail on this data because every stored grid clears it. CI runs 99 models and checks on a
+[1.2 MB real slice](tests/fixtures/lake/), which adds the rolling EIA tables.
+
+| DAG | Schedule | What it does |
+|---|---|---|
+| `atlas_rebuild` | Manual | Runs the whole pipeline, then dbt. 16 minutes on restored data |
+| `atlas_eia_recent` | Hourly, paused | Pulls the last 72 hours, kept apart from the frozen data. dbt keeps each hour's latest revision |
+| `atlas_m2_event_study` | Once, paused | Runs the locked test. Until 2026-12-15 it stops with the freeze date, as the CLI does |
+
+Limits: `atlas_rebuild` ran out of memory on a 4 GB VM until the Airflow web UI was stopped, because the analysis
+needs about 570 MB. Run on Linux, it writes different figure files, since macOS fonts are missing, and slightly
+different numbers ([details](docs/log.md#dbt-and-airflow-2026-11-01)), so the committed results come from macOS.
+No M2 models exist yet, because their inputs do not exist yet.
 
 ## Grids in this study
 
@@ -395,6 +419,8 @@ PDF, and needs Google Chrome. `make m2` runs the next stage and refuses to start
 | [docs/PLAN.md](docs/PLAN.md) | Full project plan |
 | `src/atlas/ingest/`, `contracts/`, `lake/` | Source pulls, schema checks, and storage |
 | `src/atlas/ml/` | Features, baseline, candidates, detectability, the locked event study, report, and figures |
+| `dags/` | Airflow DAGs for the rebuild, the hourly EIA pull, and the locked M2 test |
+| `dbt/models/`, `dbt/tests/` | Warehouse models, and the SQL checks against the Python results |
 | `dbt/seeds/` | Hand-entered rows, each with a citation |
 | `tests/` | Tests using recorded real responses and slices of real data |
 
