@@ -1,4 +1,4 @@
-.PHONY: setup up down lint test ci sources-check clean
+.PHONY: setup up down lint test ci sources-check ingest pipeline clean
 
 setup:
 	uv sync --python 3.12
@@ -27,6 +27,17 @@ ci: lint test
 
 sources-check:
 	uv run atlas sources check
+
+# Order matters: sites need files, EIA needs sites, candidates need EIA, weather needs candidates.
+ingest:
+	uv run atlas ingest files
+	uv run atlas ingest sites
+	uv run atlas ingest eia
+	uv run atlas ingest candidates
+	uv run atlas ingest weather
+
+pipeline: ingest
+	uv run atlas analyze detectability
 
 clean:
 	rm -rf .mypy_cache .pytest_cache .ruff_cache

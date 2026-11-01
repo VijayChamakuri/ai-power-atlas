@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     census_api_key: str = ""
     sec_contact_email: str = ""
     minio_endpoint: str = "localhost:9000"
+    # A second bucket lets a full rerun be tested without touching the frozen M1 snapshots.
+    lake_bucket: str = "atlas-lake"
     minio_root_user: str = ""
     minio_root_password: str = ""
     mlflow_tracking_uri: str = "http://localhost:5001"

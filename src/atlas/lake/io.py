@@ -9,8 +9,6 @@ import pyarrow.parquet as pq
 
 from atlas.config import Settings
 
-BUCKET = "atlas-lake"
-
 
 def open_lake(settings: Settings) -> pafs.FileSystem:
     s3 = pafs.S3FileSystem(
@@ -20,7 +18,7 @@ def open_lake(settings: Settings) -> pafs.FileSystem:
         scheme="http",
         region="us-east-1",
     )
-    return pafs.SubTreeFileSystem(BUCKET, s3)
+    return pafs.SubTreeFileSystem(settings.lake_bucket, s3)
 
 
 def exists(lake: pafs.FileSystem, key: str) -> bool:
