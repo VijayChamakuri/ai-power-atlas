@@ -71,11 +71,15 @@ def top_counties(
     return pd.DataFrame(rows)
 
 
+class WeatherQuotaError(RuntimeError):
+    """Retrying cannot outlast a daily limit, and finished counties survive for the next run."""
+
+
 @retry(
     retry=retry_if_exception_type((httpx.TransportError, httpx.HTTPStatusError)),
-    stop=stop_after_attempt(8),
-    # Open-Meteo's free tier limits calls per minute, so waits must be able to outlast a minute.
-    wait=wait_exponential(min=5, max=120),
+    stop=stop_after_attempt(12),
+    # Open-Meteo also limits calls per minute and per hour, so waits must outlast an hour.
+    wait=wait_exponential(min=5, max=900),
     reraise=True,
 )
 def fetch_weather(
@@ -93,6 +97,11 @@ def fetch_weather(
             "timezone": "GMT",
         },
     )
+    if response.status_code == 429 and "daily" in response.text.lower():
+        raise WeatherQuotaError(
+            "Open-Meteo's daily limit is used up. Run `make pipeline` tomorrow to resume, or use "
+            "the frozen data with `make lake-restore` and `make analysis`."
+        )
     response.raise_for_status()
     return pd.DataFrame(response.json()["hourly"])
 

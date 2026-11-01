@@ -137,3 +137,19 @@ have started runs since.
 Working triggers then showed that the authorship check failed on pull requests, because GitHub writes the
 temporary merge commit. The check now skips merge commits. Branch protection needs GitHub Pro on a private repo,
 so nothing blocks a direct push to `main`.
+
+## Rebuild with figures (2026-11-01)
+
+A third full `make pipeline` run, at `05483d0`, stopped in the weather pull after 13 counties. Open-Meteo answered
+"Daily API request limit exceeded", because each 8-year county pull counts as many requests and two earlier pulls
+had used the day's quota. The ingest had given up rather than saying so. It now waits out minute and hour limits,
+stops with a plain message on the daily limit, and keeps finished counties so a rerun resumes.
+
+That run also showed that Epoch updated its files after the freeze, so the snapshot hashes differ. No site's power,
+first date, or flag changed under the M1 rules. A fresh pull can therefore differ from the frozen inputs, and only
+the backup reproduces them exactly.
+
+To test what the failed run did not reach, a fresh clone of `main` at `ed14897` downloaded the data release, restored
+it into an empty bucket, and ran `make setup`, `make lake-restore`, and `make analysis`. All 8 figures matched byte for
+byte, and the results file matched except for the commit ID. So a full fresh pull with figures has not finished in one
+run: the earlier fresh pull at `4f5a92c` predates the figures, and the figures have been tested on restored data.

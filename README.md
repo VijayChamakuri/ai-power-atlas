@@ -225,6 +225,7 @@ is given actual weather, while EIA forecasts a day ahead with fresher demand dat
 |---|---|
 | Rerun at a new commit | Identical limits for all 15 series |
 | Full rebuild from a fresh clone and empty lake | Results file matched on every line but the commit ID |
+| Fresh clone restored from the data release | All 8 figures matched byte for byte, and results matched but for the commit ID |
 | Step injected into real demand | Detected in 77-80% of windows at the limit |
 | No step added | 5-8% of windows crossed the threshold |
 | Limit recomputed on parts of each history (not pre-registered) | Both passing sites still clear it |
@@ -320,7 +321,8 @@ make pipeline
 Local services are MLflow at <http://localhost:5001>, Airflow at <http://localhost:8080>, and the MinIO console
 at <http://localhost:9001>. All ports bind to loopback. Default local passwords are in `.env.example`.
 
-`make pipeline` pulls whatever the sources serve that day. Providers revise history and Epoch updates its
+`make pipeline` pulls whatever the sources serve that day. Open-Meteo's free daily limit allows about two full
+weather pulls, and a rerun resumes where it stopped. Providers revise history and Epoch updates its
 files, so later runs can differ. To work from the exact inputs behind this paper, download
 `atlas-m1-frozen-lake.tar.gz` from the [data release](https://github.com/VijayChamakuri/ai-power-atlas/releases/tag/data-m1-2026-10-31)
 into the repo folder, then run:
