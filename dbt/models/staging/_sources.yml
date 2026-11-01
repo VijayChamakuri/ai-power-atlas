@@ -1,0 +1,51 @@
+version: 2
+
+# Frozen M1 snapshots carry no freshness check: they are meant to stop changing on the freeze date.
+# Only the rolling EIA pull is expected to stay current.
+sources:
+  - name: eia
+    tables:
+      - name: region_data
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/raw/eia/region_data/**/*.parquet', union_by_name = true)"
+      - name: region_sub_ba_data
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/raw/eia/region_sub_ba_data/**/*.parquet', union_by_name = true)"
+      - name: recent
+        description: Rolling 72-hour pulls, kept apart so the frozen analysis can never read them.
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/raw/eia_recent/region_data/**/*.parquet', union_by_name = true)"
+          tags: [recent]
+          loaded_at_field: "cast(_ingested_at as timestamp)"
+          freshness:
+            warn_after: {count: 3, period: hour}
+            error_after: {count: 24, period: hour}
+  - name: weather
+    tables:
+      - name: hourly
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/raw/weather/*.parquet', union_by_name = true, filename = true)"
+  - name: derived
+    description: Tables the Python pipeline wrote, read back so SQL can check them.
+    tables:
+      - name: sites
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/sites/freeze={{ var('freeze_date') }}/sites.parquet')"
+      - name: site_bas
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/sites/freeze={{ var('freeze_date') }}/site_bas.parquet')"
+      - name: candidates
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/candidates/freeze={{ var('freeze_date') }}/candidates.parquet')"
+      - name: counties
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/candidates/freeze={{ var('freeze_date') }}/counties.parquet')"
+      - name: go_test
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/detectability/freeze={{ var('freeze_date') }}/sites.parquet')"
+      - name: estimates
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/detectability/freeze={{ var('freeze_date') }}/estimates.parquet')"
+      - name: scores
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/detectability/freeze={{ var('freeze_date') }}/scores.parquet')"

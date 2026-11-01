@@ -1,0 +1,58 @@
+version: 2
+
+models:
+  - name: stg_eia__region_data
+    data_tests: [has_rows]
+    columns:
+      - {name: ba, data_tests: [not_null]}
+      - {name: hour_utc, data_tests: [not_null]}
+      - name: series
+        data_tests:
+          - accepted_values: {arguments: {values: [D, DF]}}
+      - {name: _source, data_tests: [not_null]}
+      - {name: _source_url, data_tests: [not_null]}
+      - {name: ingested_at, data_tests: [not_null]}
+  - name: stg_eia__sub_ba
+    data_tests: [has_rows]
+    columns:
+      - {name: ba, data_tests: [not_null]}
+      - {name: hour_utc, data_tests: [not_null]}
+      - {name: _source, data_tests: [not_null]}
+      - {name: _source_url, data_tests: [not_null]}
+      - {name: ingested_at, data_tests: [not_null]}
+  - name: stg_eia__recent
+    data_tests: [has_rows]
+    columns:
+      - {name: ba, data_tests: [not_null]}
+      - {name: hour_utc, data_tests: [not_null]}
+      - {name: _source, data_tests: [not_null]}
+      - {name: _source_url, data_tests: [not_null]}
+      - {name: ingested_at, data_tests: [not_null]}
+  - name: stg_weather__hourly
+    data_tests: [has_rows]
+    columns:
+      - {name: fips, data_tests: [not_null]}
+      - {name: hour_utc, data_tests: [not_null]}
+      - {name: _source, data_tests: [not_null]}
+      - {name: _source_url, data_tests: [not_null]}
+      - {name: ingested_at, data_tests: [not_null]}
+  - name: stg_sites__sites
+    data_tests: [has_rows]
+    columns:
+      - {name: site, data_tests: [unique, not_null]}
+  - name: stg_sites__site_bas
+    data_tests: [has_rows]
+    columns:
+      - {name: site, data_tests: [unique, not_null]}
+  - name: stg_candidates__bas
+    data_tests: [has_rows]
+    columns:
+      - {name: ba, data_tests: [unique, not_null]}
+  - name: stg_candidates__counties
+    data_tests: [has_rows]
+  - name: stg_detectability__estimates
+    data_tests: [has_rows]
+  - name: stg_detectability__scores
+    data_tests: [has_rows]
+  - name: stg_detectability__go_test
+    data_tests: [has_rows]

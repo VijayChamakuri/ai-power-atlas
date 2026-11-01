@@ -1,0 +1,28 @@
+version: 2
+
+# CLAUDE.md: any hand-curated row must have a public citation URL.
+seeds:
+  - name: site_ba_assignments
+    columns:
+      - {name: source_url, data_tests: [not_null]}
+      - name: confidence
+        data_tests:
+          - accepted_values: {arguments: {values: [reported, announced, estimated]}}
+  - name: site_flags
+    columns:
+      - {name: source_url, data_tests: [not_null]}
+      - name: confidence
+        data_tests:
+          - accepted_values: {arguments: {values: [reported, announced, estimated]}}
+  - name: site_locations
+    columns:
+      - {name: source_url, data_tests: [not_null]}
+      - name: confidence
+        data_tests:
+          - accepted_values: {arguments: {values: [reported, announced, estimated]}}
+  - name: sub_ba_sites
+    columns:
+      - {name: source_url, data_tests: [not_null]}
+      - name: confidence
+        data_tests:
+          - accepted_values: {arguments: {values: [reported, announced, estimated]}}

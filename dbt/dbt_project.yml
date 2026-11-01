@@ -1,0 +1,29 @@
+name: atlas
+version: "1.0"
+profile: atlas
+model-paths: [models]
+seed-paths: [seeds]
+test-paths: [tests]
+macro-paths: [macros]
+flags:
+  send_anonymous_usage_stats: false
+
+# Copies of src/atlas/config.py and src/atlas/ml/candidates.py, because the marts recompute the
+# frozen results in SQL. tests/unit/test_dbt_project.py fails if the two ever differ.
+vars:
+  freeze_date: "2026-10-31"  # The frozen M1 snapshot these models read.
+  bad_value_median_multiple: 3  # Hours above this multiple of a BA's median are reporting errors.
+  peak_window_days: 365  # Peak over the last 12 months, so one odd year does not set it.
+  candidate_share: 0.02  # Site power must reach this share of peak for a BA to be a candidate.
+  null_quantile: 0.95  # One-sided 5% false positive rate.
+  power_quantile: 0.20  # A step clears the threshold in 80% of windows.
+  min_pseudo_dates: 12  # About one year of starting points.
+
+models:
+  atlas:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: table
+    marts:
+      +materialized: table
