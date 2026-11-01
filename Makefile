@@ -1,4 +1,4 @@
-.PHONY: setup up down lint test ci sources-check ingest analysis pipeline paper lake-export lake-restore ship clean
+.PHONY: setup up down lint test ci sources-check ingest analysis pipeline paper lake-export lake-restore clean
 
 setup:
 	uv sync --python 3.12
@@ -50,9 +50,6 @@ lake-export:
 
 lake-restore:
 	uv run atlas lake restore atlas-m1-frozen-lake.tar.gz
-
-ship: ci
-	scripts/ship.sh
 
 clean:
 	rm -rf .mypy_cache .pytest_cache .ruff_cache

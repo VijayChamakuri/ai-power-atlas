@@ -128,11 +128,12 @@ Design followed the [Nature figure guide](https://research-figure-guide.nature.c
 
 ## GitHub Actions triggers (2026-11-01)
 
-GitHub records pushes to this repo but creates no workflow runs for pushes or pull requests. Manual runs
-work. This held for two-branch and single-branch pushes, an explicit branch filter, and an open pull
-request. Actions and the workflows are enabled, on the default branch, and the repo is not a fork. It matches
-an [unanswered GitHub report](https://github.com/orgs/community/discussions/205033), so this looks like a
-GitHub-side state that only GitHub Support can clear.
+GitHub at first recorded pushes to this repo but created no workflow runs for pushes or a pull request, while
+manual runs worked. An [unanswered GitHub report](https://github.com/orgs/community/discussions/205033) describes
+the same symptom. Turning Actions off and on, disabling and enabling both workflows, and listing push branches
+explicitly cleared it. Those changes went in together, so the exact cause is unknown. Pushes and pull requests
+have started runs since.
 
-`make ship` works around it: it runs local CI, pushes, starts both workflows on that commit, and fails if
-either fails. Branch protection needs GitHub Pro on a private repo, so nothing blocks a direct push to `main`.
+Working triggers then showed that the authorship check failed on pull requests, because GitHub writes the
+temporary merge commit. The check now skips merge commits. Branch protection needs GitHub Pro on a private repo,
+so nothing blocks a direct push to `main`.
