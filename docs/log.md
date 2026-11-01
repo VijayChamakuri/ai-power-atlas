@@ -102,3 +102,14 @@ MLflow runs it left carry the tag of the older commit, `786bf0b`.
 
 The first complete run, at `bda458a`, stored no `e(t)` values. `1d0bbdb` stored them without changing
 the model or method. The sensitivity table came after that and is labeled as not pre-registered.
+
+## Clean rebuild (2026-11-01)
+
+`make setup && make pipeline` ran from a fresh clone at `4f5a92c` into an empty bucket, in 63 minutes.
+Its `docs/m1_detectability.md` matched the frozen run on every line except the commit ID. The Epoch
+files had the same hashes. The first attempt stopped when the Esri layer answered HTTP 200 with an
+error body, which the ingest now retries. `make up` used the existing checkout, because the Compose
+project name is fixed and a second copy would have replaced the running stack's bind mounts.
+
+On Linux in Docker, ruff and the tests passed. `mypy` ran out of memory in the 4 GB Colima VM there, so
+GitHub's first CI run is its first Linux check.
