@@ -4,6 +4,8 @@
 
 **Vijay Shankar Chamakuri** · Working paper, feasibility stage (M1) · Data frozen 2026-10-31
 
+[Download as PDF](docs/paper.pdf)
+
 > **Status: no finding yet.** This study measured what the public data *could* reveal. It has not
 > measured any data center's actual effect on the grid. That test is the next stage, and it has not
 > started.
@@ -318,18 +320,27 @@ make pipeline
 Local services are MLflow at <http://localhost:5001>, Airflow at <http://localhost:8080>, and the MinIO console
 at <http://localhost:9001>. All ports bind to loopback. Default local passwords are in `.env.example`.
 
-Raw data is not committed, so a new run pulls whatever the sources serve that day. Providers revise history and
-Epoch updates its files, so later runs can differ. A rebuild on 2026-11-01 [matched the results
-file](docs/log.md#clean-rebuild-2026-11-01). The figures were added after that rebuild and were drawn from the
-frozen data. [docs/log.md](docs/log.md) records the hashes of the frozen inputs.
+`make pipeline` pulls whatever the sources serve that day. Providers revise history and Epoch updates its
+files, so later runs can differ. To work from the exact inputs behind this paper, download
+`atlas-m1-frozen-lake.tar.gz` from the [data release](https://github.com/VijayChamakuri/ai-power-atlas/releases/tag/data-m1-2026-10-31)
+into the repo folder, then run:
+
+```bash
+make lake-restore
+make analysis
+```
+
+The restore checks a hash for every file and writes nothing if any file is damaged. `make paper` rebuilds the
+PDF, and needs Google Chrome. [docs/log.md](docs/log.md) records the rebuild checks and input hashes.
 
 ## Repository map
 
 | Path | Contents |
 |---|---|
+| [docs/paper.pdf](docs/paper.pdf) | This paper as a PDF |
 | [docs/analysis_plan.md](docs/analysis_plan.md) | Pre-registered method and dated amendments |
 | [docs/m1_detectability.md](docs/m1_detectability.md) | Generated results for every BA and site |
-| [docs/adr/](docs/adr/) | The go or pivot decision |
+| [docs/adr/](docs/adr/) | The go or pivot decision, and why history is never squashed |
 | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | URLs, licenses, attribution, and known issues |
 | [docs/log.md](docs/log.md) | Build log, data hashes, and differences from the plan |
 | [docs/PLAN.md](docs/PLAN.md) | Full project plan |

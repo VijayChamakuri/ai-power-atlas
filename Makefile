@@ -1,4 +1,4 @@
-.PHONY: setup up down lint test ci sources-check ingest pipeline clean
+.PHONY: setup up down lint test ci sources-check ingest analysis pipeline paper lake-export lake-restore clean
 
 setup:
 	uv sync --python 3.12
@@ -36,9 +36,20 @@ ingest:
 	uv run atlas ingest candidates
 	uv run atlas ingest weather
 
-pipeline: ingest
+analysis:
 	uv run atlas analyze detectability
 	uv run atlas analyze figures
+
+pipeline: ingest analysis
+
+paper:
+	uv run atlas analyze paper
+
+lake-export:
+	uv run atlas lake export atlas-m1-frozen-lake.tar.gz
+
+lake-restore:
+	uv run atlas lake restore atlas-m1-frozen-lake.tar.gz
 
 clean:
 	rm -rf .mypy_cache .pytest_cache .ruff_cache

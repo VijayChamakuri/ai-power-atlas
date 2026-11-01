@@ -25,6 +25,7 @@ from atlas.ingest.eia import ingest_region, ingest_sub_ba
 from atlas.ingest.files import FILE_SOURCES, snapshot, snapshot_key
 from atlas.ingest.geo import SEEDS, map_sites, parse_zcta_centroids
 from atlas.ingest.weather import ingest_county, parse_counties, top_counties
+from atlas.lake.archive import export_lake, restore_lake
 from atlas.lake.io import get_bytes, get_frame, open_lake, put_frame
 from atlas.ml import figures
 from atlas.ml.baseline import fit_predict
@@ -40,6 +41,7 @@ from atlas.ml.detectability import (
     verdict,
 )
 from atlas.ml.features import build_features, to_utc_index, weighted_weather
+from atlas.ml.paper import build_pdf
 from atlas.ml.report import render_results
 from atlas.source_check import USER_AGENT, render_report, run_checks
 
@@ -50,7 +52,9 @@ sources_app = typer.Typer(no_args_is_help=True)
 ingest_app = typer.Typer(no_args_is_help=True)
 app.add_typer(sources_app, name="sources")
 analyze_app = typer.Typer(no_args_is_help=True)
+lake_app = typer.Typer(no_args_is_help=True)
 app.add_typer(ingest_app, name="ingest")
+app.add_typer(lake_app, name="lake")
 app.add_typer(analyze_app, name="analyze")
 
 SITES_KEY = f"derived/sites/freeze={FREEZE_DATE.isoformat()}/sites.parquet"
@@ -88,6 +92,18 @@ def _client() -> httpx.Client:
 
 def _read_snapshot_csv(lake_body: bytes) -> pd.DataFrame:
     return pd.read_csv(io.BytesIO(lake_body))
+
+
+@lake_app.command("export")
+def lake_export(path: Path) -> None:
+    """Writes the whole lake to one file with a hash for every entry."""
+    log.info("lake_exported", path=str(path), files=export_lake(open_lake(Settings()), path))
+
+
+@lake_app.command("restore")
+def lake_restore(path: Path) -> None:
+    """Refuses a damaged backup before writing anything."""
+    log.info("lake_restored", path=str(path), files=restore_lake(open_lake(Settings()), path))
 
 
 @ingest_app.command("files")
@@ -416,3 +432,10 @@ def analyze_figures(output: Path = Path("docs/figures")) -> None:
         check_estimate=estimate,
         stored=float(worked["estimate_mw"].iloc[-1]),
     )
+
+
+@analyze_app.command("paper")
+def analyze_paper(output: Path = Path("docs/paper.pdf")) -> None:
+    """Needs Google Chrome, which turns the HTML version of the README into a PDF."""
+    build_pdf(Path("README.md"), Path("logs/paper.html"), output)
+    log.info("paper_written", path=str(output), bytes=output.stat().st_size)
