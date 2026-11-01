@@ -31,6 +31,14 @@ LIGHTGBM_PARAMS: dict[str, Any] = {
     "verbose": -1,
 }
 
+# M2 event study, from Amendment 4 in docs/analysis_plan.md.
+M2_AMENDMENT_APPROVED = False  # Set by Vijay's decision, in its own commit, before any M2 run.
+M2_FREEZE_DATE = date(2026, 12, 15)  # After Kuna's 180 days end on 2026-11-28, so revisions settle.
+M2_ALPHA = 0.05  # Holm-adjusted, one-sided, across the two primary sites.
+M2_SUPPORT_P = 0.10  # Other-grid placebo. Coarse, because the pool holds few grids.
+M2_LEAD_DAYS = 180  # A window this far before the start holds no site load, so it should show none.
+M2_SHIFT_DAYS = 90  # Sensitivity to Epoch's estimated start dates, from docs/PLAN.md.
+
 # EIA-930 hours are UTC, but load follows local time. Each BA uses the zone of most of its load.
 BA_TIMEZONES = {
     "AEP": "America/New_York",
