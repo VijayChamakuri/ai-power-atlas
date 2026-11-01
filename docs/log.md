@@ -125,3 +125,14 @@ Design followed the [Nature figure guide](https://research-figure-guide.nature.c
 [Ten Simple Rules for Better Figures](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4161295/), the
 [CDC on forest plots](https://www.cdc.gov/wcms/4.0/cdc-wp/data-presentation/forest-plot.html), and the
 [ONS on small multiples](https://service-manual.ons.gov.uk/data-visualisation/chart-types/small-multiple-charts).
+
+## GitHub Actions triggers (2026-11-01)
+
+GitHub records pushes to this repo but creates no workflow runs for pushes or pull requests. Manual runs
+work. This held for two-branch and single-branch pushes, an explicit branch filter, and an open pull
+request. Actions and the workflows are enabled, on the default branch, and the repo is not a fork. It matches
+an [unanswered GitHub report](https://github.com/orgs/community/discussions/205033), so this looks like a
+GitHub-side state that only GitHub Support can clear.
+
+`make ship` works around it: it runs local CI, pushes, starts both workflows on that commit, and fails if
+either fails. Branch protection needs GitHub Pro on a private repo, so nothing blocks a direct push to `main`.
