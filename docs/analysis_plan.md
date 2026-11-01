@@ -262,3 +262,65 @@ not touch M1's results or the primary tests, neither of whose grids has an overl
 
 **Lock.** `src/atlas/ml/event_study.py` refuses to produce an estimate until `M2_AMENDMENT_APPROVED` is true and the
 freeze date has passed. That flag changes only in its own commit, after this amendment.
+
+### Amendment 5 (2026-11-01): early run of Meta Los Lunas
+
+Approved by Vijay Shankar Chamakuri on 2026-11-01.
+
+**Reason.** Timing only. The author wants a real result before 2026-12-15 for job applications. Nothing in the data
+prompted this change, and the paper must say so in those words.
+
+**What was seen before this was written.**
+
+- No residual on or after a real start date has been computed.
+- PNM's demand after `T` is in the lake and in `fct_demand_hourly`. It was read to set PNM's 12-month peak in M1.
+- For this draft, only hour counts were read for the window: 4,320 of 4,320 hours reported, none flagged as bad, and
+  all with weather.
+- The approver confirmed by approving this text that they have not charted or inspected PNM's demand after `T`.
+
+**What changes.** Meta Los Lunas on PNM runs once on its own snapshot, before Meta Kuna. Its 180-day window ended on
+2026-08-27, so that data already exists. Meta Kuna, its 2026-12-15 freeze, and the secondary sites do not change.
+
+**What stays from Amendment 4.** The site, `T` = 2026-03-01, the 114 MW expected step, the model, the step estimate,
+the 45 M1 null windows, the 90% interval, the other-grid placebo, the synthetic control, and the lead window at
+`T - 180`. The freeze rule for start dates holds too: `T` stays as frozen in M1, even if Epoch has changed it since.
+
+**Data.** A new snapshot, frozen on 2026-11-01, the day this was approved and 66 days after the window closed, so EIA's
+revisions have had time to settle. It covers PNM and the other-grid pool, in its own lake prefix. Its hash goes in
+`docs/log.md`. Weather for the pool may take several days because of Open-Meteo's daily limit, and no estimate is
+computed until the snapshot is complete.
+
+**One date check moves.** The window at `T + 90` days ends on 2026-11-25, so it cannot be computed early. It is reported
+with the 2026-12-15 run, on that snapshot, and cannot change any label. The check at `T - 90` runs early as planned.
+
+**How the early result is read.** Amendment 4 corrects for two primary tests with Holm at 5%, and that correction
+stays. So Los Lunas's p-value has three possible readings, and each is fixed now.
+
+| Early rank p | Reading | Why |
+|---|---|---|
+| Below 0.025 | Passes the main test, whatever Kuna shows | Holm rejects it at every possible Kuna p-value |
+| 0.025 to below 0.05 | Pending until Kuna runs | Holm rejects it only if Kuna's own p-value is below 0.025 |
+| 0.05 or above | `null` | Holm cannot reject it |
+
+With 45 windows, p is 1/46 = 0.022 if the site beats every window, and 2/46 = 0.043 if one window beats it. So the
+first row needs a win over all 45 windows.
+
+**Labels.** The label rules in Amendment 4 stay. A site that passes the main test is `supported` or `suggestive` by the
+same other checks. The final Holm table is computed once, after the 2026-12-15 run, using this early p-value.
+
+**This run counts once.** Los Lunas's early estimate and p-value stand as the result. The site is not rerun for a better
+answer. The 2026-12-15 snapshot may recompute the estimate only to report how much EIA's revisions moved it, labeled as
+a revision check, and it cannot change the label.
+
+**A result that does not support the hypothesis is published.** A `null` goes in the README and the paper with its
+interval, as Amendment 4 requires, and the date of this run stays visible in the history.
+
+**Costs, stated plainly.**
+
+- Amendment 4 said both tests run once, together. This gives that up for one site.
+- The Kuna result will be computed with the Los Lunas result known. The Kuna method is already fixed and this
+  amendment cannot change it, but a reader should know the order.
+- A single early site gives a smaller, weaker public result than the two-site test, whatever it shows.
+
+**Lock.** The lock is narrowed in its own commit after approval, for Los Lunas only. `require_unlocked` keeps refusing
+Meta Kuna, the secondary sites, and `make m2` before 2026-12-15. Tests must show both behaviors before the early run.
