@@ -45,7 +45,7 @@ that end before each balancing authority's first listed site. Of 21 balancing au
 listed by Epoch AI, 14 met a pre-registered 2% share rule, and 10 of those had enough history for an
 estimate. Detection limits ran from 1.0% to 5.5% of 12-month peak demand. Two sites without disqualifying
 flags cleared their limits: Meta Kuna (198 MW against 98 MW in Idaho Power) and Meta Los Lunas (147 MW
-against 77 MW in PNM). No eligible site cleared its limit in PJM, ERCOT, or Southern Company, where the
+against 77 MW in New Mexico's PNM). No eligible site cleared its limit in PJM, ERCOT, or Southern Company, where the
 limits were 3,803, 2,675, and 1,678 MW. In a secondary analysis, New Carlisle (1,244 MW) cleared the 590
 MW limit of PJM's smaller AEP zone. These results support a narrow event study in small balancing
 authorities and suggest that single-campus claims at the level of a large market need stronger evidence.
@@ -109,7 +109,7 @@ their BA missed the 2% rule or has too little history. **b,** The two passing si
 **Figure 2. The normal rhythm that a data center has to stand out from.** **a, c,** Each vertical stripe is
 one day and each row is one local hour, so a dark region means high demand. Summer afternoons and evenings
 stand out in both grids. **b, d,** Demand against temperature forms a U, rising on cold days and hot days.
-The hottest 5% of days add 1,146 MW in IPCO, about 6 times Meta Kuna's 198 MW. They add 35,018 MW in PJM,
+The hottest 5% of days add 1,146 MW in Idaho Power's grid, about 6 times Meta Kuna's 198 MW. They add 35,018 MW in PJM,
 about 28 times New Carlisle's 1,244 MW. All data predates each BA's first listed site.
 
 ## 3. Methods
@@ -145,11 +145,11 @@ with a limit, and has power at or above that limit.
 
 <p align="center"><img src="docs/figures/fig3_worked_example.png" width="860" alt="Three stacked panels showing actual demand against the baseline, the daily error, and the step estimate across all test dates for IPCO."></p>
 
-**Figure 3. The method on one real window.** **a,** For IPCO's newest test window, the baseline tracks
+**Figure 3. The method on one real window.** **a,** For Idaho Power's newest test window, the baseline tracks
 demand across 545 days it never saw. **b,** The daily error is averaged over the year before the test date
 and the 180 days after it. The difference is one step estimate: −22 MW, even though no step was added.
 **c,** Repeating this every 30 days shows how far the estimate wanders by chance. The orange band, from the
-20th to the 95th percentile, is 98 MW wide. That width is IPCO's detection limit.
+20th to the 95th percentile, is 98 MW wide. That width is Idaho Power's detection limit.
 
 ## 4. Results
 
@@ -157,21 +157,21 @@ and the 180 days after it. The difference is one step estimate: −22 MW, even t
 
 <p align="center"><img src="docs/figures/fig4_grid_context.png" width="860" alt="Dot plot of listed site power as a share of peak for 21 balancing authorities, and a scatter of detection limit against grid size."></p>
 
-**Figure 4. Selection, and how limits scale with grid size.** **a,** 14 of 21 BAs meet the 2% rule. WACM
+**Figure 4. Selection, and how limits scale with grid size.** **a,** 14 of 21 BAs meet the 2% rule. WAPA Rocky Mountain
 passes on share but is out, because its data ends on 2026-04-02 and its only site starts later. MISO misses
-at 1.76%. WALC's 31% comes from three Phoenix-area sites inside overlapping polygons. **b,** Limits rise
+at 1.76%. WAPA Desert Southwest's 31% comes from three Phoenix-area sites inside overlapping polygons. **b,** Limits rise
 with grid size at about the same share of peak, between about 1% and 5.5%. Both axes are logarithmic. The
 orange diamond is PJM's AEP zone.
 
-SWPP (7 test dates), AZPS, SRP, and WALC (10 each) had too little history before their first site to get a
+The Southwest Power Pool (7 test dates), Arizona Public Service, Salt River Project, and WAPA Desert Southwest (10 each) had too little history before their first site to get a
 number, which leaves 10 BAs and the AEP zone.
 
 <p align="center"><img src="docs/figures/fig5_noise_panels.png" width="860" alt="Eleven small multiple line charts of the step estimate over time, one per series, on one shared scale."></p>
 
 **Figure 5. The noise in every series, on one scale.** Series run from the smallest limit to the largest, as
-a share of peak. Headers give the limit as a share of peak and in MW. Lines stop 180 days or more before the
-blue line by design. Some series start high: BPAT, PJM, AEP, and SOCO estimates exceed 3% of peak in early 2022,
-and AEP's values are all positive, so its demand was already beating a linear trend before its first
+a share of peak. Lines stop 180 days or more before the
+blue line by design. Some series start high: Bonneville, PJM, the AEP zone, and Southern Company exceed 3% of peak in early 2022,
+and the AEP zone's values are all positive, so its demand was already beating a linear trend before its first
 listed site. Later growth can look like a step, which is one reason a step alone cannot prove a cause.
 
 ### 4.2 Site by site
@@ -186,26 +186,26 @@ is descriptive and not part of the go test.
 
 Table 1 lists the sites that decide the result.
 
-| Site | BA | Power (MW) | Limit (MW) | Ratio | Result |
+| Site | Grid | Power (MW) | Limit (MW) | Ratio | Result |
 |---|---|---:|---:|---:|---|
-| **Meta Kuna** | IPCO | 198 | 98 | 2.03 | **Passes** |
-| **Meta Los Lunas** | PNM | 147 | 77 | 1.92 | **Passes** |
-| Meta-QTS Hillsboro 2 | PGE | 243 | 44 | 5.50 | Large enough, excluded for overlap |
-| Colossus 2 | TVA | 1,276 | 846 | 1.51 | Large enough, excluded for on-site power |
-| Fairwater Atlanta | SOCO | 859 | 1,678 | 0.51 | Below limit |
-| New Carlisle | PJM | 1,244 | 3,803 | 0.33 | Below limit |
-| Stargate Abilene | ERCO | 865 | 2,675 | 0.32 | Below limit, and on-site power |
+| **Meta Kuna** | Idaho Power | 198 | 98 | 2.03 | **Passes** |
+| **Meta Los Lunas** | PNM (New Mexico) | 147 | 77 | 1.92 | **Passes** |
+| Meta-QTS Hillsboro 2 | Portland General | 243 | 44 | 5.50 | Large enough, excluded for overlap |
+| Colossus 2 | Tennessee Valley Authority | 1,276 | 846 | 1.51 | Large enough, excluded for on-site power |
+| Fairwater Atlanta | Southern Company | 859 | 1,678 | 0.51 | Below limit |
+| New Carlisle | PJM (Mid-Atlantic) | 1,244 | 3,803 | 0.33 | Below limit |
+| Stargate Abilene | ERCOT (Texas) | 865 | 2,675 | 0.32 | Below limit, and on-site power |
 
 <p align="center"><img src="docs/figures/fig7_power_curves.png" width="860" alt="Power curves showing the chance of detecting a step as step size grows, with Meta Kuna and New Carlisle marked."></p>
 
 **Figure 7. How the chance of detection grows with step size.** **a,** Each curve starts near the 5% false
 alarm rate and rises as the step grows. Most reach 80% between 1% and 4% of peak. **b,** Meta Kuna's 198 MW
-would be detected in all of IPCO's windows. **c,** New Carlisle's 1,244 MW would be detected in 26% of PJM's
+would be detected in all of Idaho Power's windows. **c,** New Carlisle's 1,244 MW would be detected in 26% of PJM's
 windows.
 
 ### 4.3 Secondary analysis: PJM's AEP zone
 
-AEP is much smaller than PJM, with a 12-month peak of 25,122 MW and a limit of 590 MW. New Carlisle's 1,244 MW
+The AEP zone is much smaller than PJM, with a 12-month peak of 25,122 MW and a limit of 590 MW. New Carlisle's 1,244 MW
 clears it, needing 47% of its power to be seen. By the plan's rule, this analysis cannot produce a go by
 itself. It uses PJM's weather counties because the zone has no polygon of its own, so its limit may be too
 high.
@@ -215,9 +215,9 @@ high.
 <p align="center"><img src="docs/figures/fig8_accuracy.png" width="860" alt="Three dot plots comparing the baseline, EIA's day-ahead forecast, and a same-hour-last-week guess by three error measures."></p>
 
 **Figure 8. The baseline against two benchmarks.** Lower is better. The baseline beats a same-hour-last-week
-guess in every series and on every measure. On average error, it also beats EIA's day-ahead forecast in PNM,
-IPCO, and NEVP and ties in PACW, and it loses elsewhere. This is not a fair forecasting contest: the baseline
-is given actual weather, while EIA forecasts a day ahead with fresher demand data. AEP has no EIA forecast.
+guess in every series and on every measure. On average error, it also beats EIA's day-ahead forecast in New Mexico,
+Idaho, and Nevada and ties in PacifiCorp West, and it loses elsewhere. This is not a fair forecasting contest: the baseline
+is given actual weather, while EIA forecasts a day ahead with fresher demand data. The AEP zone has no EIA forecast.
 
 ## 5. Robustness
 
@@ -229,9 +229,9 @@ is given actual weather, while EIA forecasts a day ahead with fresher demand dat
 | No step added | 5-8% of windows crossed the threshold |
 | Limit recomputed on parts of each history (not pre-registered) | Both passing sites still clear it |
 
-The sensitivity check was added after the first complete run and plays no part in the go test. IPCO's limit
+The sensitivity check was added after the first complete run and plays no part in the go test. Idaho Power's limit
 ranged from 69 to 106 MW and PNM's from 67 to 85 MW, against sites of 198 and 147 MW. Los Lunas was at 114 MW
-until 2026-10-26, which also clears 85 MW. Other limits are far less stable. SOCO's ranged from 503 to 2,388
+until 2026-10-26, which also clears 85 MW. Other limits are far less stable. Southern Company's ranged from 503 to 2,388
 MW, and PJM's from 1,086 to 4,434 MW. New Carlisle sits inside PJM's range, so "below limit" there is a best
 estimate and not a firm boundary. The [full table](docs/m1_detectability.md#mde-sensitivity-not-pre-registered)
 covers every series.
@@ -243,7 +243,7 @@ see in one place and invisible in another. A claim that one campus is visible in
 should be read with care, since these limits exceed every listed site in those markets.
 
 The result also shows where a test could work. The strongest case in the data is Meta-QTS Hillsboro 2, at 5.5
-times the PGE limit with data since 2023. It is excluded only because the polygons overlap, so citing its
+times the limit of Portland General with data since 2023. It is excluded only because the polygons overlap, so citing its
 serving utility could add it to the next stage through a dated amendment.
 
 ## 7. Limitations
@@ -262,10 +262,10 @@ serving utility could add it to the next stage through a dated amendment.
   mention an offsetting solar array. Off-site solar would not reduce BA demand, but its connection should be
   confirmed before the next stage.
 - **Geography.** BA polygons overlap and do not match county lines. 24 of 60 sites rest on ZIP centroids, and
-  weather is a county-centroid approximation. SRP's weather is one county.
+  weather is a county-centroid approximation. Salt River Project's weather is one county.
 - **Timing.** Meta Kuna's first date is 2026-06-01, so a 180-day window is not complete until about
   2026-11-28, after this freeze.
-- **Data quality.** EIA-930 revises recent hours and has gaps and spikes. WACM stops on 2026-04-02.
+- **Data quality.** EIA-930 revises recent hours and has gaps and spikes. WAPA Rocky Mountain's data stops on 2026-04-02.
 - **Licensing.** The BA polygons are under the Esri Master License Agreement, not an open license. Anyone
   reproducing this depends on Esri keeping that layer available.
 
@@ -278,7 +278,7 @@ in under a minute and its output was deleted unread, before the code was committ
 Single AI campuses can be detected in small balancing authorities and generally cannot in large markets. The
 gate decision, recorded in [ADR-0002](docs/adr/0002-m1-go-or-pivot.md), is a **go with a narrower next stage**:
 
-1. Run the event study on IPCO and PNM, with placebo dates, placebo BAs, and 90% intervals, using a fresh
+1. Run the event study on Idaho Power and PNM (New Mexico), with placebo dates, placebo BAs, and 90% intervals, using a fresh
    snapshot once Kuna has 180 days.
 2. Before computing anything at a real start date, commit an amendment fixing those details and citing the
    serving utility for overlapping sites, starting with Hillsboro.
@@ -332,6 +332,33 @@ make analysis
 
 The restore checks a hash for every file and writes nothing if any file is damaged. `make paper` rebuilds the
 PDF, and needs Google Chrome. [docs/log.md](docs/log.md) records the rebuild checks and input hashes.
+
+## Grids in this study
+
+| EIA code | Grid | Roughly where |
+|---|---|---|
+| AEP | AEP zone of PJM | Parts of Ohio, Indiana, Michigan, and neighboring states |
+| AZPS | Arizona Public Service | Arizona |
+| BPAT | Bonneville Power Administration | Pacific Northwest |
+| DUK | Duke Energy Carolinas | North and South Carolina |
+| ERCO | ERCOT | Most of Texas |
+| IPCO | Idaho Power | Idaho and eastern Oregon |
+| MISO | Midcontinent ISO | Central US, from Minnesota to Louisiana |
+| NEVP | Nevada Power | Southern Nevada |
+| NYIS | New York ISO | New York |
+| PACE | PacifiCorp East | Utah, Wyoming, and Idaho |
+| PACW | PacifiCorp West | Oregon and Washington |
+| PGE | Portland General Electric | Northwest Oregon |
+| PJM | PJM Interconnection | Mid-Atlantic and Ohio Valley |
+| PNM | Public Service Company of New Mexico | New Mexico |
+| SC | Santee Cooper | South Carolina |
+| SCEG | Dominion Energy South Carolina | South Carolina |
+| SOCO | Southern Company | Georgia, Alabama, and Mississippi |
+| SRP | Salt River Project | Central Arizona |
+| SWPP | Southwest Power Pool | Central US, from the Dakotas to Oklahoma |
+| TVA | Tennessee Valley Authority | Tennessee and neighboring states |
+| WACM | Western Area Power Administration, Rocky Mountain | Colorado, Wyoming, and neighboring states |
+| WALC | Western Area Power Administration, Desert Southwest | Arizona and neighboring states |
 
 ## Repository map
 
