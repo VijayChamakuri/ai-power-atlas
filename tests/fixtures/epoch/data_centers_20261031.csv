@@ -1,0 +1,29 @@
+Name,Current H100 equivalents,Current power (MW),Current total capital cost (2025 USD billions),Owner,Users,Selected Sources,Calculations sheet,Project,Current chip types,All chip types,Investors,Construction companies,Energy companies,Country,Address
+Colossus 2,1111672.5618999496,946.0,35.836372,SpaceXAI #confident,"Anthropic #confident, Cursor #confident, SpaceXAI #confident","- [WSJ profile of the Colossus data centers](https://www.wsj.com/tech/elon-musk-xai-memphis-tennessee-power-dec4c70d) 
+- [Final GPU count reported by Elon Musk](https://x.com/elonmusk/status/1947701807389515912)
+- [MLGW update mentioning power requests for Colossus 2](https://www.mlgw.com/images/content/files/pdf/new/5-5-25%20xAI%20Update.pdf#page=4)
+- [SpaceX-Cursor partnership to use Colossus](https://x.com/SpaceX/status/2046713419978453374)
+- [Anthropic to use Colossus 2 from June 2026](https://x.com/nottombrown/status/2057194829986300375)
+- [SpaceX S-1 filing, mentioning exact compute and power for Colossus 2](https://www.sec.gov/Archives/edgar/data/1181412/000162828026036936/spaceexplorationtechnologi.htm)
+",https://docs.google.com/spreadsheets/d/1oZpZ9nTTV6wW0xjc1pPOQmKS7NCyDzuG2HiycC1GqFs/edit?usp=sharing,,"B200,B300","B200,B300",,,,United States,"5420 Tulane Rd, Memphis, TN 38109"
+Anthropic-Amazon New Carlisle,818428.4992420415,1037.0,39.283634,Amazon #confident,Anthropic #confident,"- [Air Construction Permit application for the northern portion](https://drive.google.com/file/d/1BKiTFNUk2KDaUaiHG7fz0KlkNSBTHzbb/view?usp=sharing)
+- [Backup diesel generator referenced in the permit](https://www.cat.com/en_US/products/new/power-systems/electric-power/diesel-generator-sets/117341.html)
+- [Announcement of Project Rainier coming online](https://www.aboutamazon.com/news/aws/aws-project-rainier-ai-trainium-chips-compute-cluster)
+- [Air permit for Buildings 19-32, suggesting expansion to 2.3 GW total facility power](https://t.co/HsAO7oyKa2)
+",https://docs.google.com/spreadsheets/d/1umU-KLAB_6A-lKRCdLuF7SPv74HlqKjDdfDor1bRGuY/edit?usp=sharing,Project Rainier #confident,Trainium2,Trainium2,,,,United States,"55001 Larrison Blvd, New Carlisle, IN 46552"
+Google Storey County,133906.01313794847,161.0,6.0990020000000005,Google #confident,Google DeepMind #speculative,"- [Air quality permit application listing emergency generators and a small ""R&D"" fuel cell plant](https://ndep-onbase.nv.gov/api/Document/AeFo%C3%89pjclbkomJ7CWpPryLOjA6FQT9HFrkSuMWbMXTpKCzSR%C3%81W1f8zzFhGhik1iZCcNSpuTRRqNXD1inrrpBxtA%3D/) (via [Aterio](https://www.aterio.io/))
+- [Google data center page](https://datacenters.google/locations/storey-county-nevada/)
+",https://docs.google.com/spreadsheets/d/1LrjkAu7XNz9VjMLjKm9rZyhaFAwDQfJUpeC1XKE2JR8/edit?usp=sharing,,"TPU v5e,TPU v4,TPU v6e,TPU v5p","TPU v5e,TPU v4,TPU v6e,TPU v5p",,,,United States,
+Anthropic Barber Lake,0.0,0.0,0.0,Cipher Mining #confident,Anthropic #confident,"- [Cipher signs 168 MW AI hosting deal with Fluidstack, Google backs it (Sep 2025)](https://www.globenewswire.com/news-release/2025/09/25/3156107/0/en/Cipher-Mining-Signs-168-MW-10-Year-AI-Hosting-Agreement-with-Fluidstack.html)
+- [Cipher adds 56 MW gross to reach 300 MW at Barber Lake (Nov 2025)](https://www.globenewswire.com/news-release/2025/11/20/3191801/0/en/Cipher-Mining-Signs-Additional-56-MW-10-Year-AI-Hosting-Agreement-with-Fluidstack.html)
+- [Cipher 8-K exhibit: 207 MW total critical IT load (SEC, Nov 2025)](https://www.sec.gov/Archives/edgar/data/1819989/000095010325015073/dp237633_ex9901.htm)
+- [Anthropic to expand use of Google Cloud TPUs (Oct 2025)](https://www.googlecloudpresscorner.com/2025-10-23-Anthropic-to-Expand-Use-of-Google-Cloud-TPUs-and-Services)
+- [Anthropic $50B US AI infrastructure with Fluidstack (Nov 2025)](https://www.anthropic.com/news/anthropic-invests-50-billion-in-american-ai-infrastructure)
+- [DCD: Cipher secures Fluidstack as customer, Google as investor](https://www.datacenterdynamics.com/en/news/cipher-mining-secures-fluidstack-as-a-customer-and-google-as-an-investor/)
+- [Air quality permit listing 60 x 3 MW plus 60 x 3.1MW backup generators](https://drive.google.com/file/d/1hzNlH8549ppuCwvKfMo--3PsD-hYBJDa/view?usp=sharing)
+",https://docs.google.com/spreadsheets/d/1sGialfBa0kKKX7Vm8qL_R6Ce3PSzt7NawpAnWolnTVc/edit,,,TPU v7,,,,United States,
+DayOne Nusajaya,583836.7862556847,473.0,17.918186,,,"- [News of Phase 2 operation](https://www.moomoo.com/news/post/41886329/support-ai-computing-deployment-gds-holdings-nusajaya-technology-park-datacenter?level=1&data_ticket=1778269491837872)
+- [Archived DayOne website - ""120 MW in operation"" in Johor](https://web.archive.org/web/20241231165420/https://dayonedc.com/)
+- [Archived DayOne website - 390 MW ""in service"" in Johor](https://web.archive.org/web/20260314134756/https://dayonedc.com/market/johor)
+- [Financial Times report that Alibaba and ByteDance are training AI models in southeast Asia](https://www.ft.com/content/96fe9898-a3a4-4a33-be1d-da06bdb6cb2b)
+",https://docs.google.com/spreadsheets/d/1Xu6B3gVZhKvkQ1U5gmXgOgoflyzpgOydm60SYn_lAWE/edit?usp=sharing,,"H100,B300","H100,B300",,,,Malaysia,
