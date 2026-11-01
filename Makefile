@@ -2,6 +2,7 @@
 
 setup:
 	uv sync --python 3.12
+	scripts/link_libomp.sh
 	test -f .env || cp .env.example .env
 	git rev-parse --git-dir >/dev/null 2>&1 || git init -b main
 	git config user.name "Vijay Shankar Chamakuri"
