@@ -1,0 +1,20 @@
+name: authorship
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sole-author:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail on another author or any AI trailer
+        run: |
+          git log --format='%an <%ae>%n%(trailers)' --all \
+            | grep -Ev '^(Vijay Shankar Chamakuri <vijaychamakuri1558@gmail.com>)?$' && exit 1 || exit 0
