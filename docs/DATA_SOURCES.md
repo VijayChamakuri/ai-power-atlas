@@ -45,6 +45,12 @@ is committed, apart from small test fixtures cut from real responses.
 - Known issues: the population file is Latin-1, and a ZIP centroid is only an approximate site
   location.
 
+## Census state boundaries
+
+- URL: `https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_state_20m.zip`
+- License: public domain (US government).
+- Use: the base map in Figure 1 only.
+
 ## Balancing authority polygons
 
 - URL: Esri's `Balancing_Authorities_Summary` feature layer, built on EIA data.

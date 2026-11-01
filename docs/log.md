@@ -113,3 +113,15 @@ project name is fixed and a second copy would have replaced the running stack's 
 
 On Linux in Docker, ruff and the tests passed. `mypy` ran out of memory in the 4 GB Colima VM there, so
 GitHub's first CI run is its first Linux check.
+
+## Figures (2026-11-01)
+
+`atlas analyze figures` draws the eight figures in the README from the frozen lake. They came after the
+clean rebuild above, so that rebuild did not exercise them. They use no demand on or after a BA's first
+listed site. The chance of detection at a site's full power, in Figures 6 and 7, is read off each BA's
+existing `e(t)` values. It is descriptive and not part of the go test.
+
+Design followed the [Nature figure guide](https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications),
+[Ten Simple Rules for Better Figures](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4161295/), the
+[CDC on forest plots](https://www.cdc.gov/wcms/4.0/cdc-wp/data-presentation/forest-plot.html), and the
+[ONS on small multiples](https://service-manual.ons.gov.uk/data-visualisation/chart-types/small-multiple-charts).
