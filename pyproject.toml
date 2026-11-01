@@ -1,0 +1,53 @@
+[project]
+name = "ai-power-atlas"
+version = "0.0.0"
+description = "Is AI data center growth already visible in US grid demand, and where?"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Vijay Shankar Chamakuri", email = "vijaychamakuri1558@gmail.com" }]
+license = { text = "MIT" }
+dependencies = [
+    "httpx>=0.27",
+    "pydantic-settings>=2.4",
+    "structlog>=24.4",
+    "typer>=0.12",
+]
+
+[project.scripts]
+atlas = "atlas.cli:app"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.11",
+    "pre-commit>=3.8",
+    "pytest>=8.3",
+    "pytest-recording>=0.13",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/atlas"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "T20", "BLE"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["vcr.*", "pytest_recording.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--block-network --record-mode=none"
