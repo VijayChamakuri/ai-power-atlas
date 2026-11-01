@@ -50,6 +50,32 @@ BA_TIMEZONES = {
     "WALC": "America/Phoenix",
 }
 
+# Short forms of the respondent names in EIA-930, with a region where the name does not give one.
+BA_NAMES = {
+    "AEP": "AEP zone of PJM",
+    "AZPS": "Arizona Public Service",
+    "BPAT": "Bonneville Power",
+    "DUK": "Duke Energy Carolinas",
+    "ERCO": "ERCOT (Texas)",
+    "IPCO": "Idaho Power",
+    "MISO": "MISO (Midcontinent)",
+    "NEVP": "Nevada Power",
+    "NYIS": "New York ISO",
+    "PACE": "PacifiCorp East",
+    "PACW": "PacifiCorp West",
+    "PGE": "Portland General",
+    "PJM": "PJM (Mid-Atlantic)",
+    "PNM": "PNM (New Mexico)",
+    "SC": "Santee Cooper",
+    "SCEG": "Dominion South Carolina",
+    "SOCO": "Southern Company",
+    "SRP": "Salt River Project",
+    "SWPP": "Southwest Power Pool",
+    "TVA": "Tennessee Valley Authority",
+    "WACM": "WAPA Rocky Mountain",
+    "WALC": "WAPA Desert Southwest",
+}
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

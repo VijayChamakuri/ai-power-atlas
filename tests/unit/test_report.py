@@ -26,4 +26,4 @@ def test_missing_scores_and_mde_render_blank_not_nan() -> None:
         results, pd.DataFrame({"ba": [], "peak_mw": []}), table, sites, seed, "abc1234", "pivot"
     )
     assert "nan" not in report
-    assert "| SWPP | insufficient_history | 7 |" in report
+    assert "| Southwest Power Pool (SWPP) | insufficient_history | 7 |" in report

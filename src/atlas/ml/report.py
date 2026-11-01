@@ -2,6 +2,7 @@
 
 import pandas as pd
 
+from atlas.config import BA_NAMES
 from atlas.ml.detectability import BaResult, mde_sensitivity
 
 
@@ -43,7 +44,7 @@ def render_results(
         low = _number(float(result.estimates.min())) if result.estimates.size else ""
         high = _number(float(result.estimates.max())) if result.estimates.size else ""
         lines.append(
-            f"| {ba} | {result.status} | {result.dates} | {_number(peak)} "
+            f"| {BA_NAMES[ba]} ({ba}) | {result.status} | {result.dates} | {_number(peak)} "
             f"| {_number(result.mde_mw)} | {_number(percent, 1)} "
             f"| {_number(result.rate_at_zero, 2)} | {_number(result.rate_at_mde, 2)} "
             f"| {_number(result.injected_rate, 2)} | {low} | {high} | {result.dropped_hours} |"
@@ -64,7 +65,8 @@ def render_results(
     ]
     for row in table[table["mde_mw"].notna()].to_dict("records"):
         lines.append(
-            f"| {row['site']} | {row['ba']} | {_number(row['power_mw'])} | {row['first_date']} "
+            f"| {row['site']} | {BA_NAMES[str(row['ba'])]} | {_number(row['power_mw'])} "
+            f"| {row['first_date']} "
             f"| {_number(row['mde_mw'])} | {_number(row['implied_utilization'], 2)} "
             f"| {'yes' if row['behind_meter_risk'] else ''} | {'yes' if row['overlap'] else ''} "
             f"| {'yes' if row['eligible'] else ''} | {'yes' if row['passes_go'] else ''} |"
@@ -85,7 +87,7 @@ def render_results(
             continue
         check = mde_sensitivity(result.estimates)
         lines.append(
-            f"| {ba} | {_number(result.mde_mw)} | {_number(check['first_half'])} "
+            f"| {BA_NAMES[ba]} | {_number(result.mde_mw)} | {_number(check['first_half'])} "
             f"| {_number(check['second_half'])} | {_number(check['lowest_without_a_third'])} "
             f"| {_number(check['highest_without_a_third'])} |"
         )
@@ -119,7 +121,7 @@ def render_results(
             result.scores["eia_day_ahead"],
         )
         lines.append(
-            f"| {ba} | {_number(model['mape'], 1)} | {_number(naive['mape'], 1)} "
+            f"| {BA_NAMES[ba]} | {_number(model['mape'], 1)} | {_number(naive['mape'], 1)} "
             f"| {_number(eia['mape'], 1)} | {_number(model['rmse'])} | {_number(naive['rmse'])} "
             f"| {_number(eia['rmse'])} | {_number(model['peak_hour_mae'])} "
             f"| {_number(naive['peak_hour_mae'])} | {_number(eia['peak_hour_mae'])} |"

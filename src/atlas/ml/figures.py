@@ -23,7 +23,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 
-from atlas.config import NULL_QUANTILE, POST_DAYS, POWER_QUANTILE, TRAIN_GAP_DAYS
+from atlas.config import BA_NAMES, NULL_QUANTILE, POST_DAYS, POWER_QUANTILE, TRAIN_GAP_DAYS
 from atlas.ml.detectability import detection_rate, mde_sensitivity, null_threshold
 
 INK = "#1a1a1a"
@@ -357,10 +357,14 @@ def demand_anatomy(frames: list[dict[str, Any]], path: Path) -> None:
         image = _carpet(
             carpet_axes, item["demand"][item["demand"].index >= start], item["timezone"]
         )
-        _panel(carpet_axes, next(letters), f"{ba}: every hour, last 3 years before its first site")
+        _panel(
+            carpet_axes,
+            next(letters),
+            f"{BA_NAMES[ba]}: every hour, last 3 years before its first site",
+        )
         curve_axes = figure.add_subplot(grid[row, 3])
         _weather_curve(curve_axes, item["demand"], item["temperature"])
-        _panel(curve_axes, next(letters), f"{ba}: each dot is a day, line is the median")
+        _panel(curve_axes, next(letters), f"{BA_NAMES[ba]}: each dot is one day")
     bar = figure.colorbar(image, cax=figure.add_subplot(grid[:, 1]))
     bar.set_label("Demand, % of median hour", fontsize=7.5, color=MUTED, labelpad=1)
     bar.ax.tick_params(labelsize=7, length=2)
@@ -405,7 +409,7 @@ def worked_example(
     y_top = top.get_ylim()[1]
     top.text(train_end, y_top, " Training stopped here", va="top", fontsize=7, color=MUTED)
     top.text(moment, y_top, " Test date t", va="top", fontsize=7, color=INK)
-    _panel(top, "a", f"{ba}: the model predicts 545 days it has never seen")
+    _panel(top, "a", f"{BA_NAMES[ba]}: the model predicts 545 days it has never seen")
 
     middle = figure.add_subplot(grid[1], sharex=top)
     middle.axvspan(moment, window_end, color=BLUE, alpha=0.06, linewidth=0)
@@ -509,7 +513,7 @@ def noise_panels(
     """One shared y scale in percent of peak, so grids of very different size compare directly."""
     usable = limits.dropna(subset=["mde_mw"])
     order = usable.assign(percent=usable["mde_mw"] / usable["peak_mw"] * 100).sort_values("percent")
-    figure, grid = plt.subplots(3, 4, figsize=(7.4, 5.2), sharex=True, sharey=True)
+    figure, grid = plt.subplots(3, 4, figsize=(7.6, 5.8), sharex=True, sharey=True)
     flat = grid.ravel()
     x_start: Any = pd.Timestamp("2021-10-01")
     x_end: Any = pd.Timestamp("2026-10-31")
@@ -528,24 +532,23 @@ def noise_panels(
         axes.axvline(site, color=BLUE, linewidth=0.8)
         axes.set_xlim(x_start, x_end)
         axes.annotate(
-            ba,
+            BA_NAMES[ba],
             (0, 1),
             xycoords="axes fraction",
-            xytext=(0, 4),
+            xytext=(0, 13),
             textcoords="offset points",
-            fontsize=8,
+            fontsize=7.5,
             fontweight="bold",
             color=INK,
         )
         axes.annotate(
-            f"{row['percent']:.1f}%, {row['mde_mw']:,.0f} MW",
-            (1, 1),
+            f"Limit {row['mde_mw']:,.0f} MW, {row['percent']:.1f}% of peak",
+            (0, 1),
             xycoords="axes fraction",
             xytext=(0, 4),
             textcoords="offset points",
-            fontsize=7,
+            fontsize=6.5,
             color=INK,
-            ha="right",
         )
         axes.set_xticks(ticks, ["2022", "2024", "2026"])
     note = flat[len(order)]
@@ -565,7 +568,7 @@ def noise_panels(
     for axes in flat[len(order) + 1 :]:
         axes.axis("off")
     figure.supylabel("Step estimate e(t), % of 12-month peak", fontsize=8, color=MUTED, x=0.05)
-    figure.subplots_adjust(wspace=0.09, hspace=0.2)
+    figure.subplots_adjust(wspace=0.09, hspace=0.34)
     _save(figure, path)
 
 
@@ -593,19 +596,20 @@ def power_curves(
         )
         if special:
             target, label_at = {
-                "IPCO": (70, (0.35, 76)),
+                "IPCO": (70, (0.2, 88)),
                 "PNM": (58, (3.5, 52)),
                 "PJM": (30, (3.5, 24)),
             }[ba]
             position = int(np.searchsorted(rates, target))
             left.annotate(
-                ba,
+                BA_NAMES[ba],
                 (steps[position], rates[position]),
                 xytext=label_at,
                 fontsize=7.5,
                 fontweight="bold",
                 color=INK,
                 va="center",
+                bbox=TEXT_BOX,
                 arrowprops=LEADER,
             )
     for level, text in ((80, "80% power"), (5, "5% false alarms")):
@@ -647,7 +651,7 @@ def power_curves(
         axes.set_ylim(0, 102)
         axes.set_xlabel("Step size (MW)")
         axes.xaxis.set_major_formatter(lambda value, _: f"{value:,.0f}")
-        _panel(axes, letter, f"{ba}: one real site")
+        _panel(axes, letter, BA_NAMES[ba])
     _save(figure, path)
 
 
@@ -673,8 +677,10 @@ def forest_plot(table: pd.DataFrame, estimates: pd.DataFrame, path: Path) -> Non
         if row["ba"] != current:
             current = str(row["ba"])
             position -= 0.55
-            _forest_text(axes, -0.82, position, current, fontweight="bold", fontsize=7.5)
-            _forest_text(axes, -0.65, position, f"limit {row['mde_mw']:,.0f} MW", color=MUTED)
+            _forest_text(axes, -0.82, position, BA_NAMES[current], fontweight="bold", fontsize=7.5)
+            _forest_text(
+                axes, -0.03, position, f"limit {row['mde_mw']:,.0f}", color=MUTED, ha="right"
+            )
             position -= 1
         values = estimates[estimates["ba"] == row["ba"]]["estimate_mw"].to_numpy()
         check = mde_sensitivity(values)
@@ -720,7 +726,7 @@ def forest_plot(table: pd.DataFrame, estimates: pd.DataFrame, path: Path) -> Non
     axes.spines["left"].set_visible(False)
     axes.set_xticks([0.01, 0.1, 0.5, 1, 2, 5], ["0.01", "0.1", "0.5", "1", "2", "5"])
     axes.minorticks_off()
-    axes.set_xlabel("Site power ÷ BA detection limit (log scale)")
+    axes.set_xlabel("Site power ÷ the grid's detection limit (log scale)")
     axes.grid(axis="x", color=RULE, linewidth=0.5, zorder=0)
     _forest_text(axes, -0.82, 1.0, "Site", color=MUTED, fontsize=7.5)
     _forest_text(axes, -0.03, 1.0, "MW", color=MUTED, fontsize=7.5, ha="right")
@@ -737,7 +743,7 @@ def forest_plot(table: pd.DataFrame, estimates: pd.DataFrame, path: Path) -> Non
         Line2D([], [], marker="D", color="none", markerfacecolor=ORANGE, markeredgecolor="none",
                markersize=4, label="On-site power flag"),
         Line2D([], [], marker="s", color="none", markerfacecolor=ORANGE, markeredgecolor="none",
-               markersize=4, label="Overlapping BA areas"),
+               markersize=4, label="Overlapping grid areas"),
         Line2D([], [], color=DARK, linewidth=0.8, label="Range on parts of the history"),
     ]  # fmt: skip
     figure.legend(
@@ -764,7 +770,7 @@ def grid_context(limits: pd.DataFrame, candidates: pd.DataFrame, path: Path) -> 
     left.scatter(rows["share"] * 100, positions, s=17, color=colors, zorder=3)
     left.axvline(2, color=INK, linewidth=0.7)
     left.text(2.1, 0.0, "2% rule", fontsize=7, color=INK, va="center")
-    left.set_yticks(positions, rows["ba"])
+    left.set_yticks(positions, [BA_NAMES[ba] for ba in rows["ba"]])
     left.tick_params(axis="y", length=0, labelsize=7)
     left.set_xscale("log")
     left.set_xticks([1, 2, 5, 10, 30], ["1", "2", "5", "10", "30"])
@@ -812,8 +818,9 @@ def grid_context(limits: pd.DataFrame, candidates: pd.DataFrame, path: Path) -> 
         zorder=3,
     )
     offsets = {
-        "PACW": (-5, 5),
-        "PNM": (-5, 5),
+        "PACW": (6, 4),
+        "IPCO": (6, -5),
+        "PNM": (6, -4),
         "NEVP": (-3, 6),
         "SOCO": (-5, 6),
         "ERCO": (-4, 6),
@@ -822,7 +829,7 @@ def grid_context(limits: pd.DataFrame, candidates: pd.DataFrame, path: Path) -> 
     for row in usable.to_dict("records"):
         offset = offsets.get(str(row["ba"]), (6, -3))
         right.annotate(
-            f"{row['ba']} {row['mde_mw']:,.0f}",
+            f"{BA_NAMES[str(row['ba'])]}: {row['mde_mw']:,.0f}",
             (row["peak_mw"], row["mde_mw"]),
             xytext=offset,
             textcoords="offset points",
@@ -881,7 +888,7 @@ def accuracy(scores: pd.DataFrame, limits: pd.DataFrame, path: Path) -> None:
         axes.grid(axis="y", color=RULE, linewidth=0.5, zorder=0)
         axes.tick_params(axis="y", length=0)
         _panel(axes, letter, title)
-    grid[0].set_yticks(list(order.values()), list(order.keys()))
+    grid[0].set_yticks(list(order.values()), [BA_NAMES[ba] for ba in order])
     handles, names = grid[0].get_legend_handles_labels()
     figure.legend(
         handles,
