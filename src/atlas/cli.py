@@ -30,12 +30,13 @@ from atlas.config import (
     Settings,
 )
 from atlas.ingest.datacenters import apply_flag_seeds, build_sites
-from atlas.ingest.eia import ingest_region, ingest_sub_ba, list_respondents
+from atlas.ingest.eia import ingest_recent, ingest_region, ingest_sub_ba, list_respondents
 from atlas.ingest.files import FILE_SOURCES, snapshot, snapshot_key
 from atlas.ingest.geo import SEEDS, map_sites, parse_zcta_centroids
 from atlas.ingest.weather import ingest_county, parse_counties, top_counties
 from atlas.lake.archive import export_lake, restore_lake
 from atlas.lake.io import get_bytes, get_frame, open_lake, put_frame
+from atlas.lake.sample import write_sample
 from atlas.ml import figures
 from atlas.ml.baseline import fit_predict
 from atlas.ml.candidates import clean_demand, peak_demand, select_candidates
@@ -129,6 +130,13 @@ def lake_restore(path: Path) -> None:
     log.info("lake_restored", path=str(path), files=restore_lake(open_lake(Settings()), path))
 
 
+@lake_app.command("sample")
+def lake_sample(root: Path) -> None:
+    """Rewrites the real slice that dbt builds on in CI."""
+    write_sample(open_lake(Settings()), root)
+    log.info("lake_sampled", root=str(root))
+
+
 @ingest_app.command("files")
 def ingest_files() -> None:
     """Snapshots are keyed by the freeze date, so a later run cannot change M1's inputs."""
@@ -184,6 +192,17 @@ def _read_demand(lake: pafs.FileSystem, ba: str) -> pd.DataFrame:
     ]
     frame = pd.concat([get_frame(lake, key) for key in keys], ignore_index=True)
     return frame[frame["type"] == "D"].sort_values("period").reset_index(drop=True)
+
+
+@ingest_app.command("eia-recent")
+def ingest_eia_recent() -> None:
+    """The hourly DAG's pull. It covers candidate BAs, the only ones the study follows."""
+    settings = Settings()
+    lake = open_lake(settings)
+    table = get_frame(lake, CANDIDATES_KEY)
+    respondents = sorted(table[table["candidate"]]["ba"])
+    with _client() as client:
+        ingest_recent(respondents, client, settings.eia_api_key, lake, datetime.now(UTC))
 
 
 @ingest_app.command("candidates")

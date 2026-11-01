@@ -2,7 +2,7 @@
 
 import calendar
 from collections.abc import Iterator
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 
 import httpx
 import pandas as pd
@@ -20,6 +20,8 @@ BASE_URL = "https://api.eia.gov/v2/electricity/rto"
 REGION_URL = f"{BASE_URL}/region-data/data/"
 SUB_BA_URL = f"{BASE_URL}/region-sub-ba-data/data/"
 PAGE_SIZE = 5000  # The most rows EIA v2 returns in one response.
+RECENT_HOURS = 72  # docs/PLAN.md section 7.2: EIA revises recent hours for about this long.
+PERIOD_FORMAT = "%Y-%m-%dT%H"
 
 
 class EiaError(RuntimeError):
@@ -164,3 +166,29 @@ def ingest_sub_ba(
         total += len(rows)
         log.info("eia_sub_ba_month", subba=subba, year=year, month=month, rows=len(rows))
     return total
+
+
+def ingest_recent(
+    respondents: list[str],
+    client: httpx.Client,
+    api_key: str,
+    lake: pafs.FileSystem,
+    now: datetime,
+    prefix: str = "raw/eia_recent",
+) -> int:
+    """Kept apart from raw/eia, because the frozen analysis must never read a later revision."""
+    start = now - timedelta(hours=RECENT_HOURS)
+    rows = fetch_rows(
+        client,
+        REGION_URL,
+        api_key,
+        {"respondent": respondents, "type": ["D", "DF"]},
+        start.strftime(PERIOD_FORMAT),
+        now.strftime(PERIOD_FORMAT),
+    )
+    if not rows:
+        raise EiaError(f"EIA returned no rows from {start} to {now}.")
+    key = f"{prefix}/region_data/pulled={now.strftime(PERIOD_FORMAT)}.parquet"
+    put_frame(lake, key, to_frame(rows, REGION, REGION_URL))
+    log.info("eia_recent", key=key, rows=len(rows))
+    return len(rows)

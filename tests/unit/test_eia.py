@@ -1,15 +1,25 @@
 """The cassette is a real EIA response recorded 2026-10-31, paged small to exercise paging."""
 
 import os
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
+import pyarrow.fs as pafs
 import pytest
 
 from atlas.contracts.eia import REGION
-from atlas.ingest.eia import REGION_URL, EiaError, fetch_rows, month_window, months, to_frame
+from atlas.ingest.eia import (
+    REGION_URL,
+    EiaError,
+    fetch_rows,
+    ingest_recent,
+    month_window,
+    months,
+    to_frame,
+)
+from atlas.lake.io import get_frame
 
 
 @pytest.fixture(scope="module")
@@ -65,3 +75,18 @@ def test_months_cross_a_year_boundary() -> None:
 def test_month_window_stops_at_the_freeze() -> None:
     assert month_window(2024, 2, date(2026, 10, 31)) == ("2024-02-01T00", "2024-02-29T23")
     assert month_window(2026, 10, date(2026, 10, 15)) == ("2026-10-01T00", "2026-10-15T23")
+
+
+@pytest.mark.vcr
+def test_recent_pull_writes_one_file_apart_from_the_frozen_data(tmp_path: Path) -> None:
+    lake = pafs.SubTreeFileSystem(str(tmp_path), pafs.LocalFileSystem())
+    now = datetime(2026, 10, 31, 12, tzinfo=UTC)
+    with httpx.Client(timeout=60) as client:
+        rows = ingest_recent(
+            ["PNM"], client, os.environ.get("EIA_API_KEY", "replay-only"), lake, now
+        )
+    frame = get_frame(lake, "raw/eia_recent/region_data/pulled=2026-10-31T12.parquet")
+    assert len(frame) == rows > 0
+    assert frame["period"].min() == "2026-10-28T12"
+    assert frame["period"].max() == "2026-10-31T12"
+    assert not (tmp_path / "raw" / "eia").exists()

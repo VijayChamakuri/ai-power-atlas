@@ -1,0 +1,88 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.eia.gov
+    method: GET
+    uri: https://api.eia.gov/v2/electricity/rto/region-data/data/?api_key=replay-only&data%5B0%5D=value&end=2026-10-31T12&facets%5Brespondent%5D%5B0%5D=PNM&facets%5Btype%5D%5B0%5D=D&facets%5Btype%5D%5B1%5D=DF&frequency=hourly&length=5000&offset=0&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc&sort%5B1%5D%5Bcolumn%5D=type&sort%5B1%5D%5Bdirection%5D=asc&start=2026-10-28T12
+  response:
+    body:
+      string: !!binary |
+        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
+        df2h/XGl2ecvSlMnCeluAAA=
+    headers:
+      access-control-allow-headers:
+      - Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Params
+      access-control-allow-methods:
+      - GET,POST
+      access-control-allow-origin:
+      - '*'
+      age:
+      - '1'
+      alt-svc:
+      - h3=":443"; ma=93600
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-length:
+      - '1499'
+      content-type:
+      - application/json
+      date:
+      - Sun, 01 Nov 2026 19:18:21 GMT
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      vary:
+      - Accept-Encoding
+      - Accept-Encoding
+      via:
+      - https/1.1 api-umbrella (ApacheTrafficServer [cMsSf ])
+      x-api-umbrella-request-id:
+      - d1j266amvnh4k6f64ea0
+      x-cache:
+      - MISS
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-powered-by:
+      - PHP/8.2.35
+      x-vcap-request-id:
+      - 97248128-4c34-4f28-572d-b06f73cecc55
+    status:
+      code: 200
+      message: OK
+version: 1
