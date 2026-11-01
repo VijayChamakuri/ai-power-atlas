@@ -13,7 +13,7 @@ def test_missing_scores_and_mde_render_blank_not_nan() -> None:
             "AEP",
             "ok",
             2,
-            np.array([1.0, 2.0]),
+            np.array([1.0, 2.0, 3.0, 5.0, 8.0, 13.0]),
             mde_mw=590.0,
             scores={"model": scores, "seasonal_naive": scores, "eia_day_ahead": missing},
         ),

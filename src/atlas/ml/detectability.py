@@ -59,6 +59,19 @@ def minimum_detectable(estimates: np.ndarray) -> float:
     return null_threshold(estimates) - float(np.quantile(estimates, POWER_QUANTILE))
 
 
+def mde_sensitivity(estimates: np.ndarray) -> dict[str, float]:
+    """Not pre-registered. Shows how far a rough MDE moves when part of the null is left out."""
+    half, third = len(estimates) // 2, len(estimates) // 3
+    starts = range(0, len(estimates) - third + 1, max(1, len(estimates) // 6))
+    dropped = [minimum_detectable(np.delete(estimates, slice(i, i + third))) for i in starts]
+    return {
+        "first_half": minimum_detectable(estimates[:half]),
+        "second_half": minimum_detectable(estimates[half:]),
+        "lowest_without_a_third": min(dropped),
+        "highest_without_a_third": max(dropped),
+    }
+
+
 def detection_rate(estimates: np.ndarray, step: float) -> float:
     return float(np.mean(estimates + step > null_threshold(estimates)))
 

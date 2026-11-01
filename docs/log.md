@@ -90,3 +90,15 @@ Parquet snapshots hold too many files to list. Each hash below is the SHA-256 of
 | `raw/eia/region_data/` | 1,968 | `bd2356744ea5c9bb5c35b863e354e3455a90a7e1d4cfc1fb1341cb5ad28b89b8` |
 | `raw/eia/region_sub_ba_data/` | 94 | `31453db35c06720bd89919eb0cab531aa9a2d02ddfc9d0ce77a2724734a2dd69` |
 | `raw/weather/` | 121 | `0beab0215a9ca193b7b10f97efa6078abe26baa8deab374945f8f041b8ed6a9b` |
+
+## M1 Detectability (2026-11-01)
+
+Full results: [m1_detectability.md](m1_detectability.md). Rerunning gave identical MDEs for all 15
+series.
+
+Process note: a run began against uncommitted code when a commit failed on a pre-commit fix. It was
+stopped in under a minute and its output was deleted unread, then the code was committed and run. Any
+MLflow runs it left carry the tag of the older commit, `786bf0b`.
+
+The first complete run, at `bda458a`, stored no `e(t)` values. `1d0bbdb` stored them without changing
+the model or method. The sensitivity table came after that and is labeled as not pre-registered.

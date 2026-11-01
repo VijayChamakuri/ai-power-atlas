@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from atlas.ml.detectability import BaResult
+from atlas.ml.detectability import BaResult, mde_sensitivity
 
 
 def _number(value: float | None, digits: int = 0) -> str:
@@ -68,6 +68,26 @@ def render_results(
             f"| {_number(row['mde_mw'])} | {_number(row['implied_utilization'], 2)} "
             f"| {'yes' if row['behind_meter_risk'] else ''} | {'yes' if row['overlap'] else ''} "
             f"| {'yes' if row['eligible'] else ''} | {'yes' if row['passes_go'] else ''} |"
+        )
+    lines += [
+        "",
+        "## MDE sensitivity (not pre-registered)",
+        "",
+        "Added after the first run and not part of the go test. Each column recomputes the MDE on",
+        "part of the same null. `Without a third` leaves out each consecutive third in turn.",
+        "",
+        "| BA | MDE MW | First half | Second half | Lowest without a third "
+        "| Highest without a third |",
+        "|---|---|---|---|---|---|",
+    ]
+    for ba, result in results.items():
+        if result.mde_mw is None:
+            continue
+        check = mde_sensitivity(result.estimates)
+        lines.append(
+            f"| {ba} | {_number(result.mde_mw)} | {_number(check['first_half'])} "
+            f"| {_number(check['second_half'])} | {_number(check['lowest_without_a_third'])} "
+            f"| {_number(check['highest_without_a_third'])} |"
         )
     aep = results.get("AEP")
     if aep is not None and aep.mde_mw is not None:

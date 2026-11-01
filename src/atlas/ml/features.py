@@ -42,7 +42,7 @@ def build_features(weather: pd.DataFrame, timezone: str) -> pd.DataFrame:
     federal = holidays.country_holidays("US", years=sorted(set(local.year)))
     frame = weather.assign(
         hour=local.hour,
-        day_of_week=local.dayofweek,
+        day_of_week=local.day_of_week,
         month=local.month,
         holiday=np.isin(local.date, np.array(list(federal.keys()))).astype(int),
         cooling_degree=(weather["temperature_f"] - DEGREE_HOUR_BASE_F).clip(lower=0),
