@@ -153,3 +153,11 @@ To test what the failed run did not reach, a fresh clone of `main` at `ed14897` 
 it into an empty bucket, and ran `make setup`, `make lake-restore`, and `make analysis`. All 8 figures matched byte for
 byte, and the results file matched except for the commit ID. So a full fresh pull with figures has not finished in one
 run: the earlier fresh pull at `4f5a92c` predates the figures, and the figures have been tested on restored data.
+
+## M2 commands (2026-11-01)
+
+`atlas ingest m2` and `atlas analyze event-study` now exist and refuse to run before the freeze. Weather for the
+control grids can take several days, because Open-Meteo limits daily use and the pull resumes. Tried on real data
+before any listed site, the new path reproduced IPCO's stored estimate of -21.5275 MW. A dry run at a made-up start
+date of 2023-01-01 labeled both grids `null`, and that output was discarded. Fixed in Amendment 4, the real run
+happens once.

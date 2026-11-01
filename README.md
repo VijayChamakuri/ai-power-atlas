@@ -6,9 +6,16 @@
 
 [Download as PDF](docs/paper.pdf)
 
-> **Status: no finding yet.** This study measured what the public data *could* reveal. It has not
-> measured any data center's actual effect on the grid. That test is the next stage, and it has not
-> started.
+> **Status: no finding yet.** This study has measured what the public data *could* reveal, not any data
+> center's actual effect. The test that would measure an effect is designed, approved, and committed, but it
+> cannot run until **December 15, 2026**, because one site's data does not exist yet.
+
+| Stage | State |
+|---|---|
+| M1: could a campus be detected at all? | Done. A narrow go on 2 of 60 sites |
+| M2 method | Approved and committed as [Amendment 4](docs/analysis_plan.md#amendment-4-2026-11-01-m2-event-study) |
+| M2 code | Built, tested only on data from before any site, and locked until the freeze date |
+| M2 result | Not computed. Earliest date is 2026-12-15 |
 
 ---
 
@@ -31,8 +38,8 @@ could we even tell?** It found three things:
 2. **Size of the grid matters more than size of the campus.** A 147 MW site in New Mexico can be seen. The
    1,244 MW New Carlisle campus cannot be seen in PJM's total, because PJM's demand is so large that its
    normal swings would hide it.
-3. **The rules were written first.** The method was committed to git before any model ran, so it could not
-   be adjusted to reach a preferred answer.
+3. **The rules were written first.** The method was committed to git before any model ran, and the rules for the
+   next test were committed before its data exists, so neither could be adjusted to reach a preferred answer.
 
 ---
 
@@ -92,7 +99,8 @@ unlocated. Where both the geocoder and Earth links were available, on 4 sites, t
 never appear in grid demand. Six come from a text search of Epoch's notes. One, Colossus 1, was added by
 hand with a [citation](https://www.datacenterdynamics.com/en/news/campaigners-appeal-decision-to-permit-gas-turbines-at-xais-memphis-data-center/).
 Ten sites sit inside more than one BA polygon and cannot satisfy the go test, because the polygons do not
-say which BA serves them.
+say which BA serves them. For the next stage, [citations](dbt/seeds/site_ba_assignments.csv) name the serving
+utility for 8 of the 10. These results still use the original rule.
 
 <p align="center"><img src="docs/figures/fig1_site_map.png" width="860" alt="Map of 60 US data center sites colored by test outcome, with bars showing the share of sites and power in each outcome."></p>
 
@@ -229,6 +237,8 @@ is given actual weather, while EIA forecasts a day ahead with fresher demand dat
 | Step injected into real demand | Detected in 77-80% of windows at the limit |
 | No step added | 5-8% of windows crossed the threshold |
 | Limit recomputed on parts of each history (not pre-registered) | Both passing sites still clear it |
+| Next stage's test tried on real windows from before any site | 4.2% (Idaho Power) and 4.4% (PNM) false alarms, against a 5% target |
+| Next stage's code run at a made-up date before any site | Reproduced a stored estimate exactly, and labeled both grids `null` |
 
 The sensitivity check was added after the first complete run and plays no part in the go test. Idaho Power's limit
 ranged from 69 to 106 MW and PNM's from 67 to 85 MW, against sites of 198 and 147 MW. Los Lunas was at 114 MW
@@ -277,16 +287,26 @@ in under a minute and its output was deleted unread, before the code was committ
 ## 8. Conclusion and next steps
 
 Single AI campuses can be detected in small balancing authorities and generally cannot in large markets. The
-gate decision, recorded in [ADR-0002](docs/adr/0002-m1-go-or-pivot.md), is a **go with a narrower next stage**:
+gate decision, recorded in [ADR-0002](docs/adr/0002-m1-go-or-pivot.md), is a **go with a narrower next stage**.
 
-1. Run the event study on Idaho Power and PNM (New Mexico), with placebo dates, placebo BAs, and 90% intervals, using a fresh
-   snapshot once Kuna has 180 days.
-2. Before computing anything at a real start date, commit an amendment fixing those details and citing the
-   serving utility for overlapping sites, starting with Hillsboro.
-3. Keep New Carlisle in the AEP zone as a labeled secondary result.
-4. Have the method and results reviewed independently.
+The rules for that stage are now locked in [Amendment 4](docs/analysis_plan.md#amendment-4-2026-11-01-m2-event-study),
+which was approved and committed on 2026-11-01, before its data exists.
 
-A null result will be published as a null result.
+| Part of the test | Rule |
+|---|---|
+| Primary sites | Meta Kuna on Idaho Power, starting 2026-06-01, 198 MW expected. Meta Los Lunas on PNM, starting 2026-03-01, 114 MW expected |
+| Data | One new snapshot, frozen on 2026-12-15, two weeks after Kuna's 180 days end |
+| Main test | Each site's estimate is ranked against that grid's own pre-site windows, corrected for testing two sites |
+| Other checks | Grids with no listed site, a synthetic control built from them, and a window before the start that should show nothing |
+| Secondary, cannot change a label | Meta-QTS Hillsboro 2 on Portland General at 61 MW, and New Carlisle on the AEP zone |
+
+The label is fixed in advance. **`supported`** needs the main test and every other check to pass. **`suggestive`**
+means the main test passed and another check did not. **`null`** means the main test did not pass, and it gets
+published as a null with its interval. Each site must beat essentially all of its pre-site windows, so a null is a
+realistic outcome. Even `supported` will not prove that a data center caused the rise, because other new customers
+could explain it.
+
+Independent review of the method and results follows that test.
 
 ---
 
@@ -333,7 +353,7 @@ make analysis
 ```
 
 The restore checks a hash for every file and writes nothing if any file is damaged. `make paper` rebuilds the
-PDF, and needs Google Chrome. [docs/log.md](docs/log.md) records the rebuild checks and input hashes.
+PDF, and needs Google Chrome. `make m2` runs the next stage and refuses to start before 2026-12-15. [docs/log.md](docs/log.md) records the rebuild checks and input hashes.
 
 ## Grids in this study
 
@@ -374,7 +394,7 @@ PDF, and needs Google Chrome. [docs/log.md](docs/log.md) records the rebuild che
 | [docs/log.md](docs/log.md) | Build log, data hashes, and differences from the plan |
 | [docs/PLAN.md](docs/PLAN.md) | Full project plan |
 | `src/atlas/ingest/`, `contracts/`, `lake/` | Source pulls, schema checks, and storage |
-| `src/atlas/ml/` | Features, baseline, candidates, detectability, report, and figures |
+| `src/atlas/ml/` | Features, baseline, candidates, detectability, the locked event study, report, and figures |
 | `dbt/seeds/` | Hand-entered rows, each with a citation |
 | `tests/` | Tests using recorded real responses and slices of real data |
 
