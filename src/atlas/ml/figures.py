@@ -345,7 +345,7 @@ def _weather_curve(axes: Axes, demand: pd.Series, temperature: pd.Series) -> Non
 def demand_anatomy(frames: list[dict[str, Any]], path: Path) -> None:
     """Each frame holds demand already cut to before that BA's first listed site."""
     figure = plt.figure(figsize=(8.2, 4.5))
-    grid = figure.add_gridspec(2, 4, width_ratios=[1.45, 0.035, 0.42, 1], hspace=0.42, wspace=0.04)
+    grid = figure.add_gridspec(2, 4, width_ratios=[1.45, 0.035, 0.52, 1], hspace=0.42, wspace=0.04)
     letters = iter("abcd")
     image: Any = None
     carpets = []
@@ -360,7 +360,7 @@ def demand_anatomy(frames: list[dict[str, Any]], path: Path) -> None:
         _panel(
             carpet_axes,
             next(letters),
-            f"{BA_NAMES[ba]}: every hour, last 3 years before its first site",
+            f"{BA_NAMES[ba]}: every hour, 3 years before first site",
         )
         curve_axes = figure.add_subplot(grid[row, 3])
         _weather_curve(curve_axes, item["demand"], item["temperature"])
