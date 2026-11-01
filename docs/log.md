@@ -202,3 +202,13 @@ then. No API key appeared in the Airflow or dbt logs.
 
 The plan's `dbt-expectations`, `elementary`, and semantic metrics are not used. Models for grid stress, carbon,
 site scores, and M2 results are not built, and neither is the Streamlit app.
+
+## Amendment 5 (2026-11-01)
+
+Vijay approved an early run of Meta Los Lunas, for timing. The site's window closed on 2026-08-27, and PNM reported all
+4,320 hours of it. Only hour counts were read for that check. The lock now opens for that one site, once, and only after
+its snapshot finishes. With the flag on, `atlas ingest m2` and `atlas analyze event-study` still stop with the
+2026-12-15 date, and `atlas analyze event-study-early` stops because the snapshot has not finished.
+
+The December run reuses the early estimate and p-value. It adds the `T + 90` check, which needs data through
+2026-11-25, and reports how far EIA's revisions moved the estimate.

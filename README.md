@@ -8,14 +8,16 @@
 
 > **Status: no finding yet.** This study has measured what the public data *could* reveal, not any data
 > center's actual effect. The test that would measure an effect is designed, approved, and committed, but it
-> cannot run until **December 15, 2026**, because one site's data does not exist yet.
+> cannot run in full until **December 15, 2026**, because one site's data does not exist yet. One site,
+> Meta Los Lunas, may run earlier under [Amendment 5](docs/analysis_plan.md#amendment-5-2026-11-01-early-run-of-meta-los-lunas).
 
 | Stage | State |
 |---|---|
 | M1: could a campus be detected at all? | Done. A narrow go on 2 of 60 sites |
 | M2 method | Approved and committed as [Amendment 4](docs/analysis_plan.md#amendment-4-2026-11-01-m2-event-study) |
 | M2 code | Built, tested only on data from before any site, and locked until the freeze date |
-| M2 result | Not computed. Earliest date is 2026-12-15 |
+| Early run of Meta Los Lunas | Approved as Amendment 5, for timing and not because of the data. Not computed |
+| M2 result | Not computed. Meta Kuna's earliest date is 2026-12-15 |
 
 ---
 
@@ -306,6 +308,11 @@ published as a null with its interval. Each site must beat essentially all of it
 realistic outcome. Even `supported` will not prove that a data center caused the rise, because other new customers
 could explain it.
 
+[Amendment 5](docs/analysis_plan.md#amendment-5-2026-11-01-early-run-of-meta-los-lunas) lets Meta Los Lunas run early,
+once, on its own snapshot, because its window has already closed. The reason is timing for job applications, and
+nothing in the data prompted it. The correction for two tests stays, so a pass needs p below 0.025, which means beating
+all 45 windows. A p from 0.025 to below 0.05 stays pending until Meta Kuna runs, and anything higher is a `null`.
+
 Independent review of the method and results follows that test.
 
 ---
@@ -354,7 +361,7 @@ make analysis
 ```
 
 The restore checks a hash for every file and writes nothing if any file is damaged. `make paper` rebuilds the
-PDF, and needs Google Chrome. `make m2` runs the next stage and refuses to start before 2026-12-15. [docs/log.md](docs/log.md) records the rebuild checks and input hashes.
+PDF, and needs Google Chrome. `make m2` runs the next stage and refuses to start before 2026-12-15. `make m2-early` runs Meta Los Lunas once under Amendment 5. [docs/log.md](docs/log.md) records the rebuild checks and input hashes.
 
 ### Warehouse and orchestration
 
