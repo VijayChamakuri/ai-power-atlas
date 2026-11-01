@@ -29,6 +29,11 @@ FILE_SOURCES = [
         "data_center_timelines.csv",
         "https://epoch.ai/data/data_centers/data_center_timelines.csv",
     ),
+    FileSource(
+        "census_states",
+        "cb_2023_us_state_20m.zip",
+        "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_state_20m.zip",
+    ),
     FileSource("census_zcta", "zcta.zip", f"{GAZETTEER}/2024_Gaz_zcta_national.zip"),
     FileSource("census_counties", "counties.zip", f"{GAZETTEER}/2024_Gaz_counties_national.zip"),
     FileSource(

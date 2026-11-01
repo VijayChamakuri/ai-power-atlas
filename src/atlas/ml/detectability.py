@@ -90,7 +90,7 @@ class BaResult:
     scores: dict[str, dict[str, float]] = field(default_factory=dict)
 
 
-def _daily_residuals(actual: pd.Series, predicted: pd.Series) -> pd.Series:
+def daily_residuals(actual: pd.Series, predicted: pd.Series) -> pd.Series:
     residuals = (actual - predicted).dropna()
     return residuals.groupby(pd.DatetimeIndex(residuals.index).floor("D")).mean()
 
@@ -118,7 +118,7 @@ def analyze_ba(
         window_end = moment + pd.Timedelta(days=POST_DAYS)
         future = frame[(frame.index >= train_end) & (frame.index < window_end)]
         predicted = fit_predict(frame[frame.index < train_end], future)
-        estimates.append(step_estimate(_daily_residuals(future["demand"], predicted), t))
+        estimates.append(step_estimate(daily_residuals(future["demand"], predicted), t))
         windows.append((t, predicted))
 
     values = np.array(estimates)
@@ -155,7 +155,7 @@ def _injected_rate(
         moment = pd.Timestamp(t, tz="UTC")
         injected = demand.reindex(predicted.index)
         injected = injected.where(injected.index < moment, injected + step)
-        hits += step_estimate(_daily_residuals(injected, predicted), t) > threshold
+        hits += step_estimate(daily_residuals(injected, predicted), t) > threshold
     return hits / len(windows)
 
 

@@ -38,6 +38,7 @@ ingest:
 
 pipeline: ingest
 	uv run atlas analyze detectability
+	uv run atlas analyze figures
 
 clean:
 	rm -rf .mypy_cache .pytest_cache .ruff_cache

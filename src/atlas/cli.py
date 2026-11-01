@@ -10,15 +10,35 @@ import pyarrow.fs as pafs
 import structlog
 import typer
 
-from atlas.config import BA_TIMEZONES, FREEZE_DATE, HISTORY_START, LIGHTGBM_PARAMS, Settings
+from atlas.config import (
+    BA_TIMEZONES,
+    FREEZE_DATE,
+    HISTORY_START,
+    LIGHTGBM_PARAMS,
+    PEAK_WINDOW_DAYS,
+    POST_DAYS,
+    TRAIN_GAP_DAYS,
+    Settings,
+)
 from atlas.ingest.datacenters import apply_flag_seeds, build_sites
 from atlas.ingest.eia import ingest_region, ingest_sub_ba
 from atlas.ingest.files import FILE_SOURCES, snapshot, snapshot_key
 from atlas.ingest.geo import SEEDS, map_sites, parse_zcta_centroids
 from atlas.ingest.weather import ingest_county, parse_counties, top_counties
 from atlas.lake.io import get_bytes, get_frame, open_lake, put_frame
-from atlas.ml.candidates import peak_demand, select_candidates
-from atlas.ml.detectability import BaResult, analyze_ba, go_test, verdict
+from atlas.ml import figures
+from atlas.ml.baseline import fit_predict
+from atlas.ml.candidates import clean_demand, peak_demand, select_candidates
+from atlas.ml.detectability import (
+    BaResult,
+    analyze_ba,
+    daily_residuals,
+    go_test,
+    minimum_detectable,
+    pseudo_dates,
+    step_estimate,
+    verdict,
+)
 from atlas.ml.features import build_features, to_utc_index, weighted_weather
 from atlas.ml.report import render_results
 from atlas.source_check import USER_AGENT, render_report, run_checks
@@ -37,6 +57,7 @@ SITES_KEY = f"derived/sites/freeze={FREEZE_DATE.isoformat()}/sites.parquet"
 SITE_BAS_KEY = f"derived/sites/freeze={FREEZE_DATE.isoformat()}/site_bas.parquet"
 CANDIDATES_KEY = f"derived/candidates/freeze={FREEZE_DATE.isoformat()}/candidates.parquet"
 RESULTS_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/sites.parquet"
+SCORES_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/scores.parquet"
 ESTIMATES_KEY = f"derived/detectability/freeze={FREEZE_DATE.isoformat()}/estimates.parquet"
 COUNTIES_KEY = f"derived/candidates/freeze={FREEZE_DATE.isoformat()}/counties.parquet"
 
@@ -280,6 +301,118 @@ def analyze_detectability(output: Path = Path("docs/m1_detectability.md")) -> No
             ]
         ),
     )
+    put_frame(
+        lake,
+        SCORES_KEY,
+        pd.DataFrame(
+            [
+                {"ba": r.ba, "benchmark": name, **values}
+                for r in results.values()
+                for name, values in r.scores.items()
+            ]
+        ),
+    )
     output.write_text(
         render_results(results, candidates, table, sites, seed, commit, verdict(table))
+    )
+
+
+@analyze_app.command("figures")
+def analyze_figures(output: Path = Path("docs/figures")) -> None:
+    """Refits one window for the worked example, ending before that BA's first listed site."""
+    settings = Settings()
+    lake = open_lake(settings)
+    by_name = {source.name: snapshot_key(source, FREEZE_DATE) for source in FILE_SOURCES}
+    with _client() as client:
+        snapshot(
+            next(s for s in FILE_SOURCES if s.source == "census_states"), FREEZE_DATE, lake, client
+        )
+    candidates = get_frame(lake, CANDIDATES_KEY)
+    counties = get_frame(lake, COUNTIES_KEY)
+    sites = get_frame(lake, SITES_KEY)
+    site_bas = get_frame(lake, SITE_BAS_KEY)
+    table = get_frame(lake, RESULTS_KEY)
+    estimates = get_frame(lake, ESTIMATES_KEY)
+    scores = get_frame(lake, SCORES_KEY)
+    seed = pd.read_csv(SEEDS.parent / "sub_ba_sites.csv")
+    output.mkdir(parents=True, exist_ok=True)
+
+    first_sites = {
+        str(row["ba"]): date.fromisoformat(str(row["first_site_date"]))
+        for row in candidates.to_dict("records")
+    }
+    first_sites["AEP"] = date.fromisoformat(
+        str(sites[sites["site"].isin(seed["site"])]["first_date"].dropna().min())
+    )
+
+    aep, _ = _read_series(lake, "AEP")
+    limits = table.drop_duplicates("ba")[["ba", "mde_mw"]].merge(
+        candidates[["ba", "peak_mw"]], on="ba"
+    )
+    aep_values = estimates[estimates["ba"] == "AEP"]["estimate_mw"].to_numpy()
+    window_start = pd.Timestamp(FREEZE_DATE, tz="UTC") - pd.Timedelta(days=PEAK_WINDOW_DAYS)
+    aep_clean = clean_demand(aep.dropna())
+    aep_row = {
+        "ba": "AEP",
+        "mde_mw": minimum_detectable(aep_values),
+        "peak_mw": float(aep_clean[aep_clean.index >= window_start].max()),
+    }
+    limits = pd.concat([limits, pd.DataFrame([aep_row])], ignore_index=True)
+
+    dated = []
+    demand_by_ba = {}
+    for ba in limits.dropna(subset=["mde_mw"])["ba"]:
+        demand, _ = _read_series(lake, ba)
+        demand_by_ba[ba] = demand
+        dates = pseudo_dates(HISTORY_START, first_sites[ba], demand.dropna().index.max().date())
+        chosen = estimates[estimates["ba"] == ba].sort_values("order")
+        dated.append(chosen.assign(date=pd.to_datetime(dates)))
+    series = pd.concat(dated, ignore_index=True)
+
+    figures.site_map(
+        figures.site_status(table, sites, site_bas),
+        get_bytes(lake, by_name["cb_2023_us_state_20m.zip"]),
+        output / "fig1_site_map.png",
+    )
+
+    anatomy = []
+    for ba in ("IPCO", "PJM"):
+        cutoff = pd.Timestamp(first_sites[ba], tz="UTC")
+        before_site = clean_demand(demand_by_ba[ba].dropna())
+        anatomy.append(
+            {
+                "ba": ba,
+                "demand": before_site[before_site.index < cutoff],
+                "temperature": _features_for(lake, ba, counties)["temperature_f"],
+                "timezone": BA_TIMEZONES[ba],
+            }
+        )
+    figures.demand_anatomy(anatomy, output / "fig2_demand_anatomy.png")
+
+    ba = "IPCO"
+    features = _features_for(lake, ba, counties)
+    cleaned = clean_demand(demand_by_ba[ba].dropna()).rename("demand")
+    frame = features.join(cleaned, how="inner").dropna()
+    worked = series[series["ba"] == ba].sort_values("order")
+    t = worked["date"].iloc[-1].date()
+    moment = pd.Timestamp(t, tz="UTC")
+    train_end = moment - pd.Timedelta(days=TRAIN_GAP_DAYS)
+    future = frame[
+        (frame.index >= train_end) & (frame.index < moment + pd.Timedelta(days=POST_DAYS))
+    ]
+    predicted = fit_predict(frame[frame.index < train_end], future)
+    estimate = step_estimate(daily_residuals(future["demand"], predicted), t)
+    figures.worked_example(
+        ba, future["demand"], predicted, t, worked, output / "fig3_worked_example.png"
+    )
+    figures.noise_panels(series, limits, first_sites, output / "fig5_noise_panels.png")
+    figures.power_curves(estimates, limits, table, output / "fig7_power_curves.png")
+    figures.forest_plot(table, estimates, output / "fig6_forest_plot.png")
+    figures.grid_context(limits, candidates, output / "fig4_grid_context.png")
+    figures.accuracy(scores, limits, output / "fig8_accuracy.png")
+    log.info(
+        "figures_written",
+        path=str(output),
+        check_estimate=estimate,
+        stored=float(worked["estimate_mw"].iloc[-1]),
     )
