@@ -50,3 +50,9 @@ models:
     columns:
       - {name: ba, data_tests: [not_null]}
       - {name: hour_utc, data_tests: [not_null]}
+  - name: fct_dc_load_impact
+    description: The pre-registered event study result for each site and run. Label stays empty until Holm runs.
+    data_tests: [has_rows]
+    columns:
+      - {name: site_run, data_tests: [unique, not_null]}
+      - {name: estimate_mw, data_tests: [not_null]}

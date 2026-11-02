@@ -18,6 +18,7 @@ vars:
   null_quantile: 0.95  # One-sided 5% false positive rate.
   power_quantile: 0.20  # A step clears the threshold in 80% of windows.
   min_pseudo_dates: 12  # About one year of starting points.
+  m2_support_p: 0.10  # Amendment 4: the other-grid placebo must reach this.
 
 models:
   atlas:

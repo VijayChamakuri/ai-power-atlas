@@ -49,3 +49,7 @@ sources:
       - name: scores
         config:
           external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/detectability/freeze={{ var('freeze_date') }}/scores.parquet')"
+      - name: m2_results
+        description: One row per M2 run and site. The early run and the December run each write their own file.
+        config:
+          external_location: "read_parquet('{{ env_var('ATLAS_LAKE_ROOT', 's3://atlas-lake') }}/derived/m2*/freeze=*/result.parquet', union_by_name = true, filename = true)"

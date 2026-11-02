@@ -7,6 +7,7 @@ import yaml
 from atlas.config import (
     CANDIDATE_SHARE,
     FREEZE_DATE,
+    M2_SUPPORT_P,
     MIN_PSEUDO_DATES,
     NULL_QUANTILE,
     PEAK_WINDOW_DAYS,
@@ -26,4 +27,5 @@ def test_dbt_vars_match_python_config() -> None:
         "null_quantile": NULL_QUANTILE,
         "power_quantile": POWER_QUANTILE,
         "min_pseudo_dates": MIN_PSEUDO_DATES,
+        "m2_support_p": M2_SUPPORT_P,
     }

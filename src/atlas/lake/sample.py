@@ -59,3 +59,8 @@ def write_sample(lake: pafs.FileSystem, root: Path) -> None:
     for prefix in ("derived/sites", "derived/candidates", "derived/detectability"):
         for key in _files(lake, f"{prefix}/freeze={freeze}"):
             _write(get_frame(lake, key), root / key)
+
+    # M2 results are one row per site, so the slice keeps them whole.
+    for key in _files(lake, "derived"):
+        if key.startswith("derived/m2") and key.endswith("/result.parquet"):
+            _write(get_frame(lake, key), root / key)

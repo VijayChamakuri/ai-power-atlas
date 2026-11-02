@@ -56,3 +56,8 @@ models:
     data_tests: [has_rows]
   - name: stg_detectability__go_test
     data_tests: [has_rows]
+  - name: stg_m2__results
+    data_tests: [has_rows]
+    columns:
+      - {name: site, data_tests: [not_null]}
+      - {name: run, data_tests: [not_null]}

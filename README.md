@@ -433,14 +433,16 @@ runs the page headless in CI, recomputes the estimate from the daily file, and c
 ### Warehouse and orchestration
 
 dbt builds a DuckDB warehouse from the lake. `fct_demand_hourly` holds 1,504,596 rows, one per grid and hour, with
-EIA's forecast and weighted weather. `fct_site_detectability` holds the go test for each site and grid. The demand
-table holds observed values only, so it cannot show an M2 result early.
+EIA's forecast and weighted weather. `fct_site_detectability` holds the go test for each site and grid, and
+`fct_dc_load_impact` holds each M2 result, one row per site and run, with each check as a pass or fail column. The
+demand table holds observed values only, so it cannot show an M2 result early.
 
 The marts recompute results in SQL and compare them to what Python stored. Each grid's peak, each detection limit,
-the candidate rule, and every go test verdict must match, or [`make dbt-build`](dbt/tests/) fails. All 87 models and
-checks pass on the full lake, and wrong thresholds made 3 of 4 trial runs fail as they should. The fourth, the
-12-date minimum, cannot fail on this data because every stored grid clears it. CI runs 99 models and checks on a
-[1.2 MB real slice](tests/fixtures/lake/), which adds the rolling EIA tables.
+the candidate rule, every go test verdict, and each M2 result's p-value and interval must match, or
+[`make dbt-build`](dbt/tests/) fails. All 97 models and checks pass on the full lake. Wrong thresholds made 3 of 4
+trial runs fail as they should, and adding 1 MW to the stored M2 estimate made its check fail. The fourth threshold,
+the 12-date minimum, cannot fail on this data because every stored grid clears it. CI runs 109 models and checks on
+a [1.2 MB real slice](tests/fixtures/lake/), which adds the rolling EIA tables.
 
 | DAG | Schedule | What it does |
 |---|---|---|
@@ -451,7 +453,6 @@ checks pass on the full lake, and wrong thresholds made 3 of 4 trial runs fail a
 Limits: `atlas_rebuild` ran out of memory on a 4 GB VM until the Airflow web UI was stopped, because the analysis
 needs about 570 MB. Run on Linux, it writes different figure files, since macOS fonts are missing, and slightly
 different numbers ([details](docs/log.md#dbt-and-airflow-2026-11-01)), so the committed results come from macOS.
-No M2 models exist yet, because their inputs do not exist yet.
 
 ## Grids in this study
 
