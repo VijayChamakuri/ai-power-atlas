@@ -1,4 +1,4 @@
-.PHONY: setup up down lint test dbt-ci dbt-build ci sources-check ingest analysis pipeline paper lake-export lake-restore lake-sample m2 m2-early clean
+.PHONY: setup up down lint test dbt-ci dbt-build ci sources-check ingest analysis pipeline paper app-data app lake-export lake-restore lake-sample m2 m2-early clean
 
 DBT_ARGS := --project-dir dbt --profiles-dir dbt --no-use-colors
 
@@ -59,6 +59,13 @@ pipeline: ingest analysis
 
 paper:
 	uv run atlas analyze paper
+
+# The app reads only app/data, which this rewrites from the stored early run.
+app-data:
+	uv run atlas analyze early-extract
+
+app:
+	uv run streamlit run app/streamlit_app.py
 
 lake-export:
 	uv run atlas lake export atlas-m1-frozen-lake.tar.gz

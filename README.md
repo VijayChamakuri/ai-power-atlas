@@ -1,6 +1,6 @@
 # Can a Single AI Data Center Be Seen in US Grid Demand?
 
-### A pre-registered detectability study of 60 sites and 14 balancing authorities
+### A pre-registered detectability study and event study of 60 sites and 14 balancing authorities
 
 **Vijay Shankar Chamakuri** · Working paper, M1 done, first M2 result · Data frozen 2026-10-31 and 2026-11-01
 
@@ -19,6 +19,12 @@
 | M2 code | Built, tested only on data from before any site, and locked until each freeze date |
 | Early run of Meta Los Lunas | [Run once](docs/m2_early_los_lunas.md) under Amendment 5 on 2026-11-02. Passes the main test |
 | M2 result for Meta Kuna | Not computed. Its earliest date is 2026-12-15 |
+
+<p align="center"><img src="docs/figures/fig9_los_lunas.png" width="860" alt="Top: PNM's daily demand minus its weather baseline, averaging -30 MW in the year before 2026-03-01 and +34 MW in the 180 days after. Bottom: 45 earlier step estimates as grey dots, all below the +64 MW estimate."></p>
+
+**The headline result** ([Figure 9](#45-first-event-study-meta-los-lunas-early-run)). New Mexico's demand rose 64 MW
+beyond its weather baseline after Meta Los Lunas started, more than in any of 45 windows that ended before the
+site. A [one-page app](#the-app) shows the same result with hover values.
 
 ---
 
@@ -46,7 +52,7 @@ could we even tell?** It found three things:
 
 The first of those tests has now run. After Meta Los Lunas started, New Mexico's demand rose by about 64 MW
 beyond what weather explains. That is more than in any of the 45 earlier windows, but less than the 114 MW
-Epoch lists for the site.
+Epoch listed for the site during that window.
 
 ---
 
@@ -242,6 +248,14 @@ This test ran once, on 2026-11-02, from a snapshot frozen on 2026-11-01 whose ha
 [build log](docs/log.md#amendment-5-2026-11-01). The rules are Amendments 4 and 5, both committed before the run.
 Full output: [docs/m2_early_los_lunas.md](docs/m2_early_los_lunas.md).
 
+<p align="center"><img src="docs/figures/fig9_los_lunas.png" width="860" alt="Two panels showing PNM's daily residual around the site start and the 45 earlier step estimates against the +64 MW estimate."></p>
+
+**Figure 9. The early event study.** **a,** The grey line is PNM's daily demand minus the baseline, which was
+trained on data ending 365 days before the start. The estimate is the mean after the start
+minus the mean before it: +34 - (-30) = +64 MW, rounded. **b,** The same estimate for each of PNM's 45 windows that
+ended before any listed site, from M1. The orange line is their 95th percentile. Dots are stacked within 10 MW bins
+and sit at their true values.
+
 | Measure | Value | Rule | Met |
 |---|---|---|---|
 | Estimate, 180 days from 2026-03-01 | +64 MW | Positive | Yes |
@@ -386,6 +400,8 @@ make pipeline
 | `make pipeline` | Pulls every source, runs the analysis, and draws the figures. About an hour |
 | `make dbt-build` | Builds the warehouse from the lake and runs its checks. Needs `make up` and the frozen data |
 | `make sources-check` | Rewrites `docs/source_status.md`. Exits 1 while LBNL and FCC block scripted requests |
+| `make app` | Starts the one-page app at <http://localhost:8501>. Needs no Docker and no API keys |
+| `make app-data` | Rewrites the app's files and Figure 9 from the stored early run, and stops if they differ from it |
 
 Local services are MLflow at <http://localhost:5001>, Airflow at <http://localhost:8080>, and the MinIO console
 at <http://localhost:9001>. All ports bind to loopback. Default local passwords are in `.env.example`.
@@ -403,6 +419,16 @@ make analysis
 
 The restore checks a hash for every file and writes nothing if any file is damaged. `make paper` rebuilds the
 PDF, and needs Google Chrome. `make m2` runs the next stage and refuses to start before 2026-12-15. `make m2-early` runs Meta Los Lunas once under Amendment 5. [docs/log.md](docs/log.md) records the rebuild checks and input hashes.
+
+### The app
+
+<p align="center"><img src="docs/figures/app_screenshot.png" width="620" alt="The app's first screen: the headline sentence, three numbers, and the daily residual chart."></p>
+
+`app/streamlit_app.py` is one page: the headline, the estimate with its interval and p-value, both charts with hover
+values, the pre-registered checks, the M1 limits for every site, and what the result does not show. It reads only
+the four CSV files in `app/data/`, about 100 KB, so it runs without the lake and can be hosted on Streamlit
+Community Cloud with `app/requirements.txt`. Every number on it comes from those files. `tests/unit/test_app.py`
+runs the page headless in CI, recomputes the estimate from the daily file, and checks it against the written result.
 
 ### Warehouse and orchestration
 
@@ -470,6 +496,7 @@ No M2 models exist yet, because their inputs do not exist yet.
 | `dags/` | Airflow DAGs for the rebuild, the hourly EIA pull, and the locked M2 test |
 | `dbt/models/`, `dbt/tests/` | Warehouse models, and the SQL checks against the Python results |
 | `dbt/seeds/` | Hand-entered rows, each with a citation |
+| `app/` | The one-page Streamlit app and the real extract it reads |
 | `tests/` | Tests using recorded real responses and slices of real data |
 
 ## Glossary

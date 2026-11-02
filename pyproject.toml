@@ -34,6 +34,9 @@ dependencies = [
 atlas = "atlas.cli:app"
 
 [dependency-groups]
+app = [
+    "streamlit>=1.66.1",
+]
 dev = [
     "mypy>=1.11",
     "pandas-stubs>=3.1.0.261029",
@@ -46,6 +49,10 @@ dev = [
     "types-markdown>=3.11.2.20261029",
     "types-pyyaml>=6.0.12.20261030",
 ]
+
+[tool.uv]
+# CI runs the app's smoke test, so the app group installs by default.
+default-groups = ["dev", "app"]
 
 [build-system]
 requires = ["hatchling"]
@@ -64,7 +71,7 @@ select = ["E", "F", "I", "B", "UP", "T20", "BLE"]
 
 [tool.mypy]
 strict = true
-files = ["src", "tests"]
+files = ["src", "tests", "app"]
 
 [[tool.mypy.overrides]]
 module = ["vcr.*", "pytest_recording.*", "shapefile.*", "scipy.*"]

@@ -1,0 +1,6 @@
+# The charts use the paper's light palette, so the page does too.
+[theme]
+base = "light"
+
+[browser]
+gatherUsageStats = false
