@@ -212,3 +212,21 @@ its snapshot finishes. With the flag on, `atlas ingest m2` and `atlas analyze ev
 
 The December run reuses the early estimate and p-value. It adds the `T + 90` check, which needs data through
 2026-11-25, and reports how far EIA's revisions moved the estimate.
+
+The snapshot ran from code at `8cfb950`, 2026-11-01 23:21 UTC to 2026-11-02 18:05 UTC, in one attempt. It holds 32
+BAs over 95 months. AEC (33 months), BHBA (8) and WAUW (88) report for less than the full span, and none of them is a
+donor. PNM has all 95. The 20 donors are AECI, AVA, BANC, CISO, CPLE, CPLW, EPE, FMPP, FPC, FPL, GCPD, ISNE, JEA,
+LDWP, LGEE, NWMT, PSCO, TEC, TEPC and TPWR. Hashes use the same method as the M1 table:
+
+| Prefix | Files | SHA-256 |
+|---|---|---|
+| `raw/m2_early/freeze=2026-11-01/eia/region_data/` | 2,884 | `17567ac52bf62f6c125884c551f74c25cf63ce1772bab2889b56a6cff517c803` |
+| `raw/m2_early/freeze=2026-11-01/weather/` | 139 | `270d487966cf807e3655d12eb6b2276242d3dd8f7d638767fdb34ab013291fc7` |
+| `derived/m2_early/freeze=2026-11-01/` | 3 | `eb29ad40b9995bcf4296f0f3e10831c895245bfb6f813fb82b2c33c5e205b1c4` |
+
+Only file names and hashes were read. No demand value was opened before the estimate.
+
+`atlas analyze event-study-early` ran once, on 2026-11-02 from code at `8cfb950`, in 36 seconds. The working tree
+differed from that commit only by the hash table above. Result: +64 MW, 90% interval +13 to +102 MW, p = 0.022, which
+passes under Amendment 5. The result is stored at `derived/m2_early/freeze=2026-11-01/result.parquet`, and a second
+run stops on it. Full output: [m2_early_los_lunas.md](m2_early_los_lunas.md).

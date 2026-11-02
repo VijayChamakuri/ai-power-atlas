@@ -2,22 +2,23 @@
 
 ### A pre-registered detectability study of 60 sites and 14 balancing authorities
 
-**Vijay Shankar Chamakuri** · Working paper, feasibility stage (M1) · Data frozen 2026-10-31
+**Vijay Shankar Chamakuri** · Working paper, M1 done, first M2 result · Data frozen 2026-10-31 and 2026-11-01
 
 [Download as PDF](docs/paper.pdf)
 
-> **Status: no finding yet.** This study has measured what the public data *could* reveal, not any data
-> center's actual effect. The test that would measure an effect is designed, approved, and committed, but it
-> cannot run in full until **December 15, 2026**, because one site's data does not exist yet. One site,
-> Meta Los Lunas, may run earlier under [Amendment 5](docs/analysis_plan.md#amendment-5-2026-11-01-early-run-of-meta-los-lunas).
+> **Status: one early result.** New Mexico's grid (PNM) used about **64 MW** more than its weather-adjusted
+> baseline in the 180 days after Meta Los Lunas started, with a 90% interval of 13 to 102 MW. That rise beat
+> all 45 of PNM's earlier windows (p = 0.022), so it passes the pre-registered main test. Its final label is set
+> after the second site, Meta Kuna, runs on **December 15, 2026**. A pass shows demand rose beyond its normal
+> range. It does not prove the data center caused the rise.
 
 | Stage | State |
 |---|---|
 | M1: could a campus be detected at all? | Done. A narrow go on 2 of 60 sites |
 | M2 method | Approved and committed as [Amendment 4](docs/analysis_plan.md#amendment-4-2026-11-01-m2-event-study) |
-| M2 code | Built, tested only on data from before any site, and locked until the freeze date |
-| Early run of Meta Los Lunas | Approved as Amendment 5, for timing and not because of the data. Not computed |
-| M2 result | Not computed. Meta Kuna's earliest date is 2026-12-15 |
+| M2 code | Built, tested only on data from before any site, and locked until each freeze date |
+| Early run of Meta Los Lunas | [Run once](docs/m2_early_los_lunas.md) under Amendment 5 on 2026-11-02. Passes the main test |
+| M2 result for Meta Kuna | Not computed. Its earliest date is 2026-12-15 |
 
 ---
 
@@ -43,6 +44,10 @@ could we even tell?** It found three things:
 3. **The rules were written first.** The method was committed to git before any model ran, and the rules for the
    next test were committed before its data exists, so neither could be adjusted to reach a preferred answer.
 
+The first of those tests has now run. After Meta Los Lunas started, New Mexico's demand rose by about 64 MW
+beyond what weather explains. That is more than in any of the 45 earlier windows, but less than the 114 MW
+Epoch lists for the site.
+
 ---
 
 ## Abstract
@@ -58,7 +63,9 @@ against 77 MW in New Mexico's PNM). No eligible site cleared its limit in PJM, E
 limits were 3,803, 2,675, and 1,678 MW. In a secondary analysis, New Carlisle (1,244 MW) cleared the 590
 MW limit of PJM's smaller AEP zone. These results support a narrow event study in small balancing
 authorities and suggest that single-campus claims at the level of a large market need stronger evidence.
-No effect of any site has been estimated.
+In the first pre-registered event study, run early for one site, PNM's demand rose 64 MW (90% interval 13 to
+102 MW) above its baseline after Meta Los Lunas started, against an expected 114 MW. The rise exceeded all 45
+pre-site windows (rank p = 0.022), which passes the main test after correction for two sites.
 
 ---
 
@@ -229,6 +236,38 @@ guess in every series and on every measure. On average error, it also beats EIA'
 Idaho, and Nevada and ties in PacifiCorp West, and it loses elsewhere. This is not a fair forecasting contest: the baseline
 is given actual weather, while EIA forecasts a day ahead with fresher demand data. The AEP zone has no EIA forecast.
 
+### 4.5 First event study: Meta Los Lunas (early run)
+
+This test ran once, on 2026-11-02, from a snapshot frozen on 2026-11-01 whose hashes are in the
+[build log](docs/log.md#amendment-5-2026-11-01). The rules are Amendments 4 and 5, both committed before the run.
+Full output: [docs/m2_early_los_lunas.md](docs/m2_early_los_lunas.md).
+
+| Measure | Value | Rule | Met |
+|---|---|---|---|
+| Estimate, 180 days from 2026-03-01 | +64 MW | Positive | Yes |
+| 90% interval | +13 to +102 MW | Reported | |
+| Rank p against PNM's 45 pre-site windows | 0.022 | Below 0.025 under Amendment 5 | Yes |
+| Window 180 days before the start | -45 MW | Below the +51 MW threshold | Yes |
+| Other-grid placebo, 20 grids | p = 0.095 | 0.10 or less | Yes |
+| Synthetic control gap | +70 MW | Positive | Yes |
+| Start moved 90 days earlier | -5 MW | Reported | |
+| Start moved 90 days later | Not yet | Needs data through 2026-11-25 | |
+
+Every condition for `supported` holds on these numbers, but the label is assigned in the December run with
+Meta Kuna, and that run cannot change this estimate or p-value.
+
+Five things limit what this shows:
+
+- **The p-value is at its floor.** 0.022 is 1/46, the smallest value 45 windows allow. The test cannot say how far
+  beyond the earlier windows the rise is.
+- **The other-grid check passed narrowly.** 0.095 against a 0.10 cutoff, with 20 grids in the pool.
+- **The estimate is smaller than the site.** The interval stops at 102 MW and excludes Epoch's 114 MW. The site
+  may draw less than listed, may have ramped up slowly, or other load may have fallen.
+- **It depends on Epoch's start date.** Moving the start 90 days earlier gives -5 MW, so most of the rise falls
+  after 2026-03-01. That fits a start near the listed date but would also fit any new load that began then.
+- **EIA revises recent hours.** The December run on a later snapshot reports how far the revisions move this
+  estimate. The early result stands either way.
+
 ## 5. Robustness
 
 | Check | Result |
@@ -261,7 +300,8 @@ serving utility could add it to the next stage through a dated amendment.
 
 ## 7. Limitations
 
-- **Could, not did.** This study says what could be detected, not what happened.
+- **Mostly could, not did.** M1 says what could be detected. Only one site's effect has been estimated so far,
+  and a rise in demand after its start does not prove that the site caused it.
 - **Few independent windows.** Each estimate spans 545 days and test dates are 30 days apart, so a BA has far
   fewer independent windows than dates. Every limit is rough.
 - **Sudden steps only.** Real campuses ramp up over months, which is harder to detect.
@@ -312,6 +352,7 @@ could explain it.
 once, on its own snapshot, because its window has already closed. The reason is timing for job applications, and
 nothing in the data prompted it. The correction for two tests stays, so a pass needs p below 0.025, which means beating
 all 45 windows. A p from 0.025 to below 0.05 stays pending until Meta Kuna runs, and anything higher is a `null`.
+It ran on 2026-11-02 and passed: +64 MW, p = 0.022 ([Section 4.5](#45-first-event-study-meta-los-lunas-early-run)).
 
 Independent review of the method and results follows that test.
 
