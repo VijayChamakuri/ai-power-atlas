@@ -43,6 +43,7 @@ M2_EARLY_PASS_P = M2_ALPHA / 2  # Below this, Holm rejects at every possible p f
 M2_SUPPORT_P = 0.10  # Other-grid placebo. Coarse, because the pool holds few grids.
 M2_LEAD_DAYS = 180  # A window this far before the start holds no site load, so it should show none.
 M2_SHIFT_DAYS = 90  # Sensitivity to Epoch's estimated start dates, from docs/PLAN.md.
+EXTRACT_TOLERANCE_MW = 0.01  # Reruns on one machine match exactly; the README rounds to whole MW.
 
 # Fixed by Amendment 4. Start dates stay as frozen in M1, even if Epoch changes them later.
 M2_PRIMARY = (

@@ -1,0 +1,2 @@
+site,ba,start,expected_mw,estimate_mw,p,low_mw,high_mw,threshold_mw,lead_mw,minus_90_mw,plus_90_mw,other_grid_p,synthetic_gap_mw,adjusted_p,label,revision_mw
+Meta Los Lunas,PNM,2026-03-01,114.0,63.756614905974416,0.021739130434782608,12.996629763276303,102.34704323793827,50.75998514269811,-45.45008389276644,-4.956234729692611,,0.09523809523809523,69.80743564182995,,,

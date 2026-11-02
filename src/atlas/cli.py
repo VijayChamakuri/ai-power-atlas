@@ -15,6 +15,7 @@ import typer
 from atlas.config import (
     BA_TIMEZONES,
     EIA_AGGREGATES,
+    EXTRACT_TOLERANCE_MW,
     FREEZE_DATE,
     HISTORY_START,
     LIGHTGBM_PARAMS,
@@ -33,14 +34,20 @@ from atlas.config import (
     Settings,
 )
 from atlas.ingest.datacenters import apply_flag_seeds, build_sites
-from atlas.ingest.eia import ingest_recent, ingest_region, ingest_sub_ba, list_respondents
+from atlas.ingest.eia import (
+    REGION_URL,
+    ingest_recent,
+    ingest_region,
+    ingest_sub_ba,
+    list_respondents,
+)
 from atlas.ingest.files import FILE_SOURCES, snapshot, snapshot_key
 from atlas.ingest.geo import SEEDS, map_sites, parse_zcta_centroids
 from atlas.ingest.weather import ingest_county, parse_counties, top_counties
 from atlas.lake.archive import export_lake, restore_lake
 from atlas.lake.io import exists, get_bytes, get_frame, open_lake, put_bytes, put_frame
 from atlas.lake.sample import write_sample
-from atlas.ml import figures
+from atlas.ml import figures, m2_figures
 from atlas.ml.baseline import fit_predict
 from atlas.ml.candidates import clean_demand, peak_demand, select_candidates
 from atlas.ml.detectability import (
@@ -692,3 +699,41 @@ def analyze_event_study_early(output: Path = Path("docs/m2_early_los_lunas.md"))
     )
     put_frame(lake, M2_EARLY_RESULT_KEY, result_to_frame(result))
     output.write_text(render_early_result(result, len(donors)))
+
+
+@analyze_app.command("early-extract")
+def analyze_early_extract(
+    figure: Path = Path("docs/figures/fig9_los_lunas.png"), data: Path = Path("app/data")
+) -> None:
+    """Writes the chart and the app's files from the stored run, and refuses if they differ."""
+    lake = open_lake(Settings())
+    if not exists(lake, M2_EARLY_RESULT_KEY):
+        raise typer.BadParameter("Run `atlas analyze event-study-early` first.")
+    result = result_from_frame(get_frame(lake, M2_EARLY_RESULT_KEY))
+    counties = get_frame(lake, M2_EARLY_SNAPSHOT.derived("counties.parquet"))
+    daily = _m2_errors(lake, result.ba, counties, result.start, M2_EARLY_SNAPSHOT)
+    if abs(step_estimate(daily, result.start) - result.estimate_mw) > EXTRACT_TOLERANCE_MW:
+        raise typer.BadParameter("The recomputed series does not match the stored estimate.")
+    estimates = get_frame(lake, ESTIMATES_KEY)
+    nulls = estimates[estimates["ba"] == result.ba].sort_values("order")
+    m2_figures.early_result_figure(
+        result.ba, result.start, daily, nulls["estimate_mw"].to_numpy(), result.estimate_mw, figure
+    )
+    data.mkdir(parents=True, exist_ok=True)
+    provenance = {
+        "_source": "EIA-930 demand and Open-Meteo weather, via the atlas baseline",
+        "_source_url": REGION_URL,
+        "_snapshot": M2_EARLY_SNAPSHOT.raw_eia,
+    }
+    daily_frame = pd.DataFrame(
+        {
+            "date": pd.DatetimeIndex(daily.index).strftime("%Y-%m-%d"),
+            "residual_mw": daily.round(3).to_numpy(),
+        }
+    )
+    daily_frame.assign(**provenance).to_csv(data / "los_lunas_daily.csv", index=False)
+    nulls[["order", "estimate_mw"]].round(3).to_csv(data / "los_lunas_nulls.csv", index=False)
+    result_to_frame(result).to_csv(data / "los_lunas_result.csv", index=False)
+    sites = get_frame(lake, RESULTS_KEY)
+    columns = ["site", "ba", "power_mw", "first_date", "mde_mw", "eligible", "passes_go"]
+    sites[columns].round(1).to_csv(data / "m1_sites.csv", index=False)

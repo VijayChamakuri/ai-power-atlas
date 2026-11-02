@@ -1,0 +1,59 @@
+site,ba,power_mw,first_date,mde_mw,eligible,passes_go
+Meta Kuna,IPCO,198.0,2026-06-01,97.7,True,True
+Meta Los Lunas,PNM,147.0,2026-03-01,76.5,True,True
+Meta-QTS Hillsboro 2,PGE,243.0,2023-08-02,44.2,False,False
+Google The Dalles,PACW,185.0,2025-03-07,116.4,False,False
+Colossus 2,TVA,1276.0,2025-10-19,846.1,False,False
+Meta-QTS Hillsboro 2,BPAT,243.0,2023-08-02,171.1,False,False
+Google The Dalles,BPAT,185.0,2025-03-07,171.1,False,False
+Microsoft Fairwater Atlanta,SOCO,859.0,2025-10-14,1678.0,True,False
+Colossus 1,TVA,425.0,2024-08-11,846.1,False,False
+Google Storey County,NEVP,214.0,2023-08-30,535.8,True,False
+Anthropic-Amazon New Carlisle,PJM,1244.0,2025-06-23,3803.2,True,False
+OpenAI Stargate Abilene,ERCO,865.0,2025-09-26,2674.7,False,False
+Meta Huntsville,TVA,198.0,2026-03-04,846.1,True,False
+Meta Prometheus,PJM,612.0,2025-10-14,3803.2,False,False
+CoreWeave Denton TX,ERCO,367.0,2025-05-31,2674.7,True,False
+Meta Gallatin,TVA,114.0,2026-08-24,846.1,True,False
+Meta Montgomery,SOCO,199.0,2026-06-18,1678.0,True,False
+Google New Albany,PJM,400.0,2024-04-20,3803.2,True,False
+Google Columbus,PJM,364.0,2024-04-01,3803.2,True,False
+QTS Richmond 1,PJM,333.0,2024-01-29,3803.2,True,False
+Meta Temple,ERCO,231.0,2025-12-09,2674.7,True,False
+Google Bristow,PJM,286.0,2024-04-29,3803.2,True,False
+Coreweave Helios,ERCO,200.0,2026-08-30,2674.7,False,False
+AWS New Albany,PJM,255.0,2024-12-01,3803.2,True,False
+QTS Richmond 2,PJM,252.0,2025-02-04,3803.2,True,False
+QTS Richmond 3,PJM,202.0,2026-02-13,3803.2,True,False
+CoreWeave Dalton 1 & 2,TVA,40.0,2026-02-20,846.1,False,False
+Google Midlothian,ERCO,123.0,2026-04-19,2674.7,True,False
+Google Lancaster,PJM,164.0,2024-01-01,3803.2,True,False
+Microsoft SAT40,ERCO,106.0,2024-05-24,2674.7,True,False
+AWS Berwick,PJM,139.0,2025-09-09,3803.2,True,False
+Google Red Oak,ERCO,93.0,2025-08-25,2674.7,True,False
+STACK Infrastructure NVA02,PJM,118.0,2024-10-01,3803.2,True,False
+CoreWeave Chester VA,PJM,114.0,2024-01-31,3803.2,True,False
+Microsoft SAT14,ERCO,66.0,2024-07-01,2674.7,True,False
+Google Arcola,PJM,93.0,2026-06-16,3803.2,True,False
+CoreWeave Dalton 1 & 2,SOCO,40.0,2026-02-20,1678.0,False,False
+Microsoft-Nebius New Jersey,PJM,70.0,2026-04-15,3803.2,True,False
+Vantage TX1,ERCO,44.8,2026-02-15,2674.7,True,False
+xAI QTS Atlanta,SOCO,24.0,2025-02-20,1678.0,True,False
+Google Pryor (North),SWPP,442.0,2024-07-19,,False,False
+Google Mesa,AZPS,237.0,2025-07-01,,False,False
+Google Mesa,SRP,237.0,2025-07-01,,False,False
+Google Mesa,WALC,237.0,2025-07-01,,False,False
+Google Council Bluffs (East),SWPP,284.0,2024-11-19,,False,False
+Microsoft Goodyear,AZPS,263.0,2023-04-24,,False,False
+Microsoft Goodyear,SRP,263.0,2023-04-24,,False,False
+Microsoft Goodyear,WALC,263.0,2023-04-24,,False,False
+Google Kansas City East,SWPP,126.0,2026-08-01,,False,False
+Google Omaha,SWPP,284.0,2024-04-08,,False,False
+Google Lincoln,SWPP,170.0,2026-05-12,,False,False
+Coreweave Helios,SWPP,200.0,2026-08-30,,False,False
+Google Papillion,SWPP,284.0,2023-01-23,,False,False
+CoreWeave Ellendale ND,SWPP,88.0,2025-10-27,,False,False
+Meta Sarpy,SWPP,105.0,2026-08-02,,False,False
+Stream Phoenix,AZPS,77.0,2026-05-01,,False,False
+Stream Phoenix,SRP,77.0,2026-05-01,,False,False
+Stream Phoenix,WALC,77.0,2026-05-01,,False,False
