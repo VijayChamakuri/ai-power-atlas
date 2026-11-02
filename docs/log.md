@@ -230,3 +230,18 @@ Only file names and hashes were read. No demand value was opened before the esti
 differed from that commit only by the hash table above. Result: +64 MW, 90% interval +13 to +102 MW, p = 0.022, which
 passes under Amendment 5. The result is stored at `derived/m2_early/freeze=2026-11-01/result.parquet`, and a second
 run stops on it. Full output: [m2_early_los_lunas.md](m2_early_los_lunas.md).
+
+## App, Figure 9, and the M2 mart (2026-11-02)
+
+`atlas analyze early-extract` recomputes PNM's daily residuals from the early snapshot and stops unless their step
+estimate matches the stored one within 0.01 MW. It matched. It writes Figure 9 and the four CSV files the app reads,
+about 100 KB in all. `tests/unit/test_app.py` runs the app headless, so CI checks the page loads and shows the stored
+numbers.
+
+`fct_dc_load_impact` reads every M2 result file. A SQL check recomputes each result's rank p and 90% interval from
+M1's stored null windows. Adding 1 MW to the estimate made it fail, and the true value passes. On the full lake, 97
+models and checks pass. CI's slice now carries the one real result row and runs 109.
+
+Process note: commit `7f0b43d` was pushed with a comment one character over sqlfluff's line limit. The command that
+ran `make ci` piped its output through a filter, which hid the failed exit code. `c408854` fixed the line. `make ci`
+is now run on its own and its exit code checked before any commit.
