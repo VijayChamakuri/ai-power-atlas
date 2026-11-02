@@ -1,4 +1,4 @@
--- The rank p and the 90% interval follow from the stored null windows alone, so SQL recomputes both.
+-- The rank p and the 90% interval follow from the stored null windows, so SQL recomputes both.
 with
 
 nulls as (
