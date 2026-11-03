@@ -154,6 +154,13 @@ it into an empty bucket, and ran `make setup`, `make lake-restore`, and `make an
 byte, and the results file matched except for the commit ID. So a full fresh pull with figures has not finished in one
 run: the earlier fresh pull at `4f5a92c` predates the figures, and the figures have been tested on restored data.
 
+That gap closed on 2026-11-03. A fresh clone at `da7bb67` ran `make setup` and then `make pipeline` into an empty
+bucket, rerunning after each daily-limit stop. Open-Meteo stopped the first three attempts, and the fourth finished
+with exit code 0, 20 hours after the first started. The fourth took 2 hours 3 minutes, but it reused counties the
+earlier attempts had finished, so that is not a cold-start time. All 8 figures matched the committed ones byte for
+byte, and `docs/m1_detectability.md` matched on every line but the commit ID. Figure 9 and the app extract are not part
+of `make pipeline`, so this run did not test them.
+
 ## M2 commands (2026-11-01)
 
 `atlas ingest m2` and `atlas analyze event-study` now exist and refuse to run before the freeze. Weather for the

@@ -289,6 +289,7 @@ Five things limit what this shows:
 | Rerun at a new commit | Identical limits for all 15 series |
 | Full rebuild from a fresh clone and empty lake | Results file matched on every line but the commit ID |
 | Fresh clone restored from the data release | All 8 figures matched byte for byte, and results matched but for the commit ID |
+| Full fresh pull with figures, fresh clone and empty lake ([log](docs/log.md#rebuild-with-figures-2026-11-01)) | All 8 figures matched byte for byte, and results matched but for the commit ID |
 | Step injected into real demand | Detected in 77-80% of windows at the limit |
 | No step added | 5-8% of windows crossed the threshold |
 | Limit recomputed on parts of each history (not pre-registered) | Both passing sites still clear it |
