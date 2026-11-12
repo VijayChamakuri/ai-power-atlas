@@ -24,23 +24,25 @@ Early event study, from the snapshot frozen on 1 November 2026. The detectabilit
 | Rank p | 0.022 |
 | Epoch power for this window | 114 MW |
 
-The baseline is the demand predicted from the calendar and from temperature and humidity. The step estimate is the average miss in the 180 days after a date, minus the average miss in the year before it. Rank p is where that estimate sits among windows that ended before any listed campus on the same grid.
+64 MW is the measured rise. 114 MW is Epoch's listing for the March 2026 window, and 147 MW is the same campus on the 31 October 2026 list.
 
-The rise clears the comparison that was committed before this snapshot. It is still smaller than the 114 MW Epoch listed for this window, and a higher residual does not show that the campus caused it. I set the final label only when the second site, Meta Kuna on Idaho Power, is scored, which cannot happen before 15 December 2026. Stored values and the other checks are in [docs/RESULTS.md](docs/RESULTS.md). The working paper is [docs/paper.md](docs/paper.md) ([PDF](docs/paper.pdf)).
+The baseline is the demand predicted from the calendar and the weather. The step estimate is the average miss in the 180 days after a date, minus the average miss in the year before it. Rank p is where that estimate sits among the earlier windows on the same grid.
+
+The rise beat every one of those earlier windows. It is smaller than the 114 MW Epoch listed for the campus, and a higher residual does not show that the campus caused it.
 
 ## How it works
 
 ### Which campuses are even testable
 
-A balancing authority (BA) is the organization that matches supply and demand on one part of the grid. I keep a BA when its listed campuses are at least 2% of its peak hour, and I keep a campus only if it sits in one grid boundary, has no on-site generation flag, and is at least as large as that grid's detection limit. Two of 60 sites pass, holding 345 of 15,835 MW: Meta Kuna, 198 MW against a 98 MW limit on Idaho Power, and Meta Los Lunas, 147 MW on the 31 October 2026 list against a 77 MW limit on PNM. The event study uses 114 MW for Los Lunas, Epoch's figure for the 1 March 2026 window, not that 147 MW ([`select_candidates`](src/atlas/ml/candidates.py), [`go_test`](src/atlas/ml/detectability.py)).
+A balancing authority (BA) keeps supply and demand matched on one part of the grid. I test a BA only when its listed campuses are large next to its peak, and a campus only when it sits in one grid boundary, has no on-site generation flag, and clears that grid's detection limit. Two of 60 sites pass, holding 345 of 15,835 MW: Meta Kuna on Idaho Power and Meta Los Lunas on PNM. The cutoffs are in [docs/METHODOLOGY.md](docs/METHODOLOGY.md), and the code is [`select_candidates`](src/atlas/ml/candidates.py) and [`go_test`](src/atlas/ml/detectability.py).
 
 ### Weather baseline
 
-I want the jump, not the weather. A straight line is fit on the training window, [LightGBM](https://lightgbm.readthedocs.io/) fits what is left, and the line is added back, because a tree cannot extrapolate a trend and a missing trend would look like new load. The features are local hour, weekday, month, a US federal holiday, temperature, humidity, and heating and cooling degrees from a 65 F base, with no lagged demand, and hours at or below zero or above three times the median are dropped. Settings are in [docs/METHODOLOGY.md](docs/METHODOLOGY.md), and the fit is [`src/atlas/ml/baseline.py`](src/atlas/ml/baseline.py).
+I want the jump, not the weather. A straight line is fit on the training window, [LightGBM](https://lightgbm.readthedocs.io/) fits what is left, and the line is added back, because a tree cannot extrapolate a trend and a missing trend would look like new load. There is no lagged demand. The features and the hour filter are in [docs/METHODOLOGY.md](docs/METHODOLOGY.md), and the fit is [`src/atlas/ml/baseline.py`](src/atlas/ml/baseline.py).
 
 ### Detection limit
 
-Test dates fall every 30 days. The model trains on data that ends a year earlier, scores the next 545 days, and the step estimate (`PRE_DAYS` is 365, `POST_DAYS` is 180) is:
+The same step is scored on many dates, and the last window has to end before the grid's first listed site, so the real campus stays out of the noise. The detection limit is how far those estimates wander. The spacing and the percentiles are in [docs/METHODOLOGY.md](docs/METHODOLOGY.md). [`step_estimate`](src/atlas/ml/detectability.py) is:
 
 ```python
 def step_estimate(daily_residuals: pd.Series, t: date) -> float:
@@ -56,8 +58,6 @@ def step_estimate(daily_residuals: pd.Series, t: date) -> float:
     ]
     return float(post.mean() - pre.mean())
 ```
-
-From [`step_estimate`](src/atlas/ml/detectability.py). The last window has to end before the grid's first listed site, so the real campus stays out of the noise. The minimum detectable step is the 95th percentile of those estimates minus the 20th, a 5% false-positive line that a step of that size would clear in 80% of windows, and a grid with fewer than 12 dates gets no number.
 
 ### Event study
 
@@ -77,17 +77,17 @@ The same estimator is applied at the real start date and ranked against that gri
 
 ## Evaluation
 
-`make ci` runs ruff, ruff format, mypy in strict mode, sqlfluff, pytest with the network blocked, and a dbt build. dbt is the tool that builds the DuckDB warehouse. pytest is 128 passed. The dbt build on the real slice in [`tests/fixtures/lake`](tests/fixtures/lake) is 109 passed: 24 models, 81 data tests, and 4 seeds. That slice includes the rolling EIA tables, which is why it is higher than the 97 passed on the full-lake build recorded in [docs/log.md](docs/log.md).
+`make ci` runs the linters, mypy in strict mode, sqlfluff, pytest with the network blocked, and a dbt build. dbt builds the DuckDB warehouse. pytest is 128 passed. dbt on the real slice in [`tests/fixtures/lake`](tests/fixtures/lake) is 109 passed (24 models, 81 data tests, 4 seeds), against 97 on the full-lake build in [docs/log.md](docs/log.md).
 
-- The step formula, the go rule, and the event-study locks are in [`tests/unit/test_detectability.py`](tests/unit/test_detectability.py), [`tests/unit/test_event_study.py`](tests/unit/test_event_study.py), and [`tests/unit/test_candidates.py`](tests/unit/test_candidates.py). An added step moves the estimate by exactly the step, on real PNM hours.
-- Ingest, site locations, and recorded source responses are in [`tests/unit/test_eia.py`](tests/unit/test_eia.py), [`tests/unit/test_datacenters.py`](tests/unit/test_datacenters.py), [`tests/unit/test_geo.py`](tests/unit/test_geo.py), and [`tests/unit/test_source_check.py`](tests/unit/test_source_check.py). The cassettes are in [`tests/fixtures/cassettes`](tests/fixtures/cassettes).
-- [`tests/unit/test_app.py`](tests/unit/test_app.py) loads the Streamlit page headless and recomputes the step from [`app/data/los_lunas_daily.csv`](app/data/los_lunas_daily.csv). It has to match the stored estimate within 0.01 MW.
-- dbt restates the candidate rule, the limits, the go verdict, and the event-study p-value and interval. [`dbt/tests`](dbt/tests) fails the build if those disagree with the Python output. Adding 1 MW to the stored estimate fails that check.
+- Estimator, go rule, and locks: [`tests/unit/test_detectability.py`](tests/unit/test_detectability.py) and the event-study tests next to it.
+- Ingest and recorded source responses: [`tests/unit/`](tests/unit/) and [`tests/fixtures/cassettes`](tests/fixtures/cassettes).
+- The app recomputes the stored step: [`tests/unit/test_app.py`](tests/unit/test_app.py).
+- The warehouse fails if its queries disagree with Python: [`dbt/tests`](dbt/tests).
 
 ## Limitations
 
 - A jump in the residual is not a cause. Another new customer on the same date would look the same.
-- Epoch's power and start dates are estimates from imagery and permits, not meters. The event study compares against 114 MW, the figure for the March 2026 window. The 31 October 2026 list puts the same campus at 147 MW.
+- Epoch's power and start dates are estimates from imagery and permits, not meters.
 - The limit assumes a step on one day. A slow ramp is easier to miss, and the limits on PJM (the Mid-Atlantic grid, 3,803 MW), ERCOT (most of Texas, 2,675 MW), and Southern Company (1,678 MW) sit above every listed site there.
 - EIA-930 revises recent hours. Shifting the Los Lunas start 90 days later still needs data through 25 November 2026, and the rank p is as small as 45 comparison windows can make it.
 
@@ -99,34 +99,17 @@ The same estimator is applied at the real start date and ranked against that gri
 
 ## Run it
 
-You need git, make, uv, and Python 3.12. Docker is only for the warehouse services and a full rebuild.
+You need git, make, uv, and Python 3.12.
 
 ```bash
 git clone https://github.com/VijayChamakuri/ai-power-atlas.git
 cd ai-power-atlas
 make setup
-```
-
-`make setup` creates `.env` from [`.env.example`](.env.example). Put a free [EIA data key](https://www.eia.gov/opendata/register.php) there. `make sources-check` also needs a [Census key](https://api.census.gov/data/key_signup.html) and a contact email for the SEC's EDGAR filing system.
-
-```bash
 make ci
 make app
 ```
 
-`make app` serves the one-page result at <http://localhost:8501>. It reads the four comma-separated files in [`app/data`](app/data) (about 100 KB) and does not need Docker or a key.
-
-A rebuild from the frozen lake needs the archive `atlas-m1-frozen-lake.tar.gz` from the [data release](https://github.com/VijayChamakuri/ai-power-atlas/releases/tag/data-m1-2026-10-31) in the repo folder:
-
-```bash
-make up
-make lake-restore
-make analysis
-```
-
-`make up` starts Postgres, MinIO, Airflow, and MLflow, all bound to loopback. Airflow is at <http://localhost:8080>, MLflow at <http://localhost:5001>, and the MinIO console at <http://localhost:9001>. Local passwords are in `.env.example`.
-
-`make pipeline` pulls the sources again instead of using the frozen files. A clean pull of that kind took 63 minutes. Open-Meteo's daily limit can stop the weather pull; the next run resumes at the counties already saved. `make m2` refuses to start before 15 December 2026. `make m2-early` has already run once and refuses a second time. `make paper` rebuilds the PDF and needs Google Chrome. Hashes and the rebuild notes are in [docs/log.md](docs/log.md).
+`make setup` copies [`.env.example`](.env.example) if you do not already have a `.env`. `make ci` and `make app` do not need a key or Docker. `make app` serves the page at <http://localhost:8501> from the files in [`app/data`](app/data). A fresh pull, the local services and their ports, and restoring the frozen lake are in [Reproduce this](docs/paper.md#reproduce-this).
 
 ## Repository map
 

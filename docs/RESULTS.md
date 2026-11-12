@@ -22,7 +22,7 @@ The stored rank p-value is 1/46 = 0.02174, reported as 0.022. With 45 comparison
 | Other-grid placebo, 20 grids | p = 0.095 | 0.10 or less |
 | Synthetic control gap | +70 MW | Positive |
 
-Stored values behind the rounded MW figures, from `los_lunas_result.csv`: estimate 63.76, interval 13.00 to 102.35, lead window -45.45, lead threshold 50.76, start minus 90 days -4.96, synthetic gap 69.81, other-grid p 0.09524. The label column is empty. [m2_early_los_lunas.md](m2_early_los_lunas.md) reads the early result as "passes the main test" and leaves the final label for the run with Meta Kuna.
+Stored values behind the rounded MW figures, from `los_lunas_result.csv`: estimate 63.76, interval 13.00 to 102.35, lead window -45.45, lead threshold 50.76, start minus 90 days -4.96, synthetic gap 69.81, other-grid p 0.09524. The label column is empty. [m2_early_los_lunas.md](m2_early_los_lunas.md) reads the early result as "passes the main test." The final label is assigned with Meta Kuna, which cannot be scored before 15 December 2026, and that later run keeps this estimate and this p-value.
 
 Two power figures for the same campus measure different lists:
 
