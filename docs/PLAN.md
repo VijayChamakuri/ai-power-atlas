@@ -270,7 +270,7 @@ Register it in `.pre-commit-config.yaml` as a `commit-msg` stage hook, then run 
 **4. A CI guard** (`.github/workflows/authorship.yml`). It fails the build if any commit has a different author or an AI trailer:
 ```bash
 git log --format='%an <%ae>%n%(trailers)' --all \
-  | grep -Ev '^(Vijay Shankar Chamakuri <vijaychamakuri1558@gmail.com>)?$' && exit 1 || exit 0
+  | grep -Ev '^(Vijay Shankar Chamakuri <(vijaychamakuri1558@gmail.com|91257914\+VijayChamakuri@users.noreply.github.com)>)?$' && exit 1 || exit 0
 ```
 
 **5. Verify before every push:**

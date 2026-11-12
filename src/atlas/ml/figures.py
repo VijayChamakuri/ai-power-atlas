@@ -1,4 +1,6 @@
-"""Journal-style panels. The README caption carries the message, so each panel can carry the data.
+"""Journal-style panels. The caption beside the figure carries the finding.
+
+The panel itself can then carry the data.
 
 Nothing here touches demand on or after a BA's first listed site. That is M2's job.
 """

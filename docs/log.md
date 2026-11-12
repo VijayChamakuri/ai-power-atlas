@@ -116,7 +116,7 @@ GitHub's first CI run is its first Linux check.
 
 ## Figures (2026-11-01)
 
-`atlas analyze figures` draws the eight figures in the README from the frozen lake. They came after the
+`atlas analyze figures` draws the eight M1 figures from the frozen lake. They came after the
 clean rebuild above, so that rebuild did not exercise them. They use no demand on or after a BA's first
 listed site. The chance of detection at a site's full power, in Figures 6 and 7, is read off each BA's
 existing `e(t)` values. It is descriptive and not part of the go test.

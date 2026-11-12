@@ -1,0 +1,539 @@
+# Can a Single AI Data Center Be Seen in US Grid Demand?
+
+### A pre-registered detectability study and event study of 60 sites and 14 balancing authorities
+
+**Vijay Shankar Chamakuri** · Working paper, M1 done, first M2 result · Data frozen 2026-10-31 and 2026-11-01
+
+[Download as PDF](paper.pdf)
+
+The short overview is the repository [README](../README.md). This file is the working paper.
+
+> **Status: one early result.** New Mexico's grid (PNM) used about **64 MW** more than its weather-adjusted
+> baseline in the 180 days after Meta Los Lunas started, with a 90% interval of 13 to 102 MW. That rise beat
+> all 45 of PNM's earlier windows (p = 0.022), so it passes the pre-registered main test. Its final label is set
+> after the second site, Meta Kuna, runs on **December 15, 2026**. A pass shows demand rose beyond its normal
+> range. It does not prove the data center caused the rise.
+
+| Stage | State |
+|---|---|
+| M1: could a campus be detected at all? | Done. A narrow go on 2 of 60 sites |
+| M2 method | Approved and committed as [Amendment 4](analysis_plan.md#amendment-4-2026-11-01-m2-event-study) |
+| M2 code | Built, tested only on data from before any site, and locked until each freeze date |
+| Early run of Meta Los Lunas | [Run once](m2_early_los_lunas.md) under Amendment 5 on 2026-11-02. Passes the main test |
+| M2 result for Meta Kuna | Not computed. Its earliest date is 2026-12-15 |
+
+<p align="center"><img src="figures/fig9_los_lunas.png" width="860" alt="Top: PNM's daily demand minus its weather baseline, averaging -30 MW in the year before 2026-03-01 and +34 MW in the 180 days after. Bottom: 45 earlier step estimates as grey dots, all below the +64 MW estimate."></p>
+
+**The headline result** ([Figure 9](#45-first-event-study-meta-los-lunas-early-run)). New Mexico's demand rose 64 MW
+beyond its weather baseline after Meta Los Lunas started, more than in any of 45 windows that ended before the
+site. A [one-page app](#the-app) shows the same result with hover values.
+
+---
+
+## In plain English
+
+Imagine trying to tell, from your home's electricity bill alone, whether a neighbor plugged a space
+heater into your outlet. If your bill swings by hundreds of dollars with the seasons, a heater adds too
+little to notice. If your bill barely moves, you would spot it right away.
+
+The US grid works the same way. Each regional grid operator, called a **balancing authority**, publishes
+its electricity demand every hour. AI data centers now draw hundreds of megawatts, and some more than a
+gigawatt. People often assume that this new demand must be obvious in the data. But a heat wave can add
+far more demand than a data center does.
+
+So before asking "did this data center change demand?", this study asks a prior question: **if it did,
+could we even tell?** It found three things:
+
+1. **Mostly no, for one site at a time.** Of 60 listed US sites with power by October 2026, only **2**
+   pass the test. Together they hold 345 of the 15,835 MW in the list.
+2. **Size of the grid matters more than size of the campus.** A 147 MW site in New Mexico can be seen. The
+   1,244 MW New Carlisle campus cannot be seen in PJM's total, because PJM's demand is so large that its
+   normal swings would hide it.
+3. **The rules were written first.** The method was committed to git before any model ran, and the rules for the
+   next test were committed before its data exists, so neither could be adjusted to reach a preferred answer.
+
+The first of those tests has now run. After Meta Los Lunas started, New Mexico's demand rose by about 64 MW
+beyond what weather explains. That is more than in any of the 45 earlier windows, but less than the 114 MW
+Epoch listed for the site during that window.
+
+---
+
+## Abstract
+
+Attributing electricity demand growth to AI data centers requires knowing how small a change hourly grid
+data can reveal. We estimate a minimum detectable step for 11 demand series from EIA-930 for 2019-2026,
+using an untuned, weather-normalized LightGBM baseline scored strictly out of sample and only on windows
+that end before each balancing authority's first listed site. Of 21 balancing authorities holding sites
+listed by Epoch AI, 14 met a pre-registered 2% share rule, and 10 of those had enough history for an
+estimate. Detection limits ran from 1.0% to 5.5% of 12-month peak demand. Two sites without disqualifying
+flags cleared their limits: Meta Kuna (198 MW against 98 MW in Idaho Power) and Meta Los Lunas (147 MW
+against 77 MW in New Mexico's PNM). No eligible site cleared its limit in PJM, ERCOT, or Southern Company, where the
+limits were 3,803, 2,675, and 1,678 MW. In a secondary analysis, New Carlisle (1,244 MW) cleared the 590
+MW limit of PJM's smaller AEP zone. These results support a narrow event study in small balancing
+authorities and suggest that single-campus claims at the level of a large market need stronger evidence.
+In the first pre-registered event study, run early for one site, PNM's demand rose 64 MW (90% interval 13 to
+102 MW) above its baseline after Meta Los Lunas started, against an expected 114 MW. The rise exceeded all 45
+pre-site windows (rank p = 0.022), which passes the main test after correction for two sites.
+
+---
+
+## 1. Introduction
+
+Demand from AI data centers is a common explanation for rising load forecasts. Testing that claim in
+observed data is harder than it looks. Hourly demand moves with weather, the calendar, and other
+customers, and any new campus arrives on top of those movements. An event study applied to a site that is
+too small to detect gives a null result that means nothing, and a positive result could easily be noise.
+
+Statisticians handle this by calculating power before running a test. This paper does that for grid
+demand. It asks what size of sudden, lasting step in demand each series could reveal, using a 5% false
+positive rate and 80% power, and it compares that limit with each listed site.
+
+Three design choices protect the result:
+
+- **Pre-registration.** The [analysis plan](analysis_plan.md) was committed before any model was fit.
+  Later changes are [dated amendments](analysis_plan.md#amendments).
+- **No look at the real effect.** Every number comes from windows that end before a balancing authority's
+  first listed site. No residual has been computed on or after a real start date.
+- **Untuned model.** The LightGBM settings are common starting values, fixed before the first fit. Tuning
+  them against these windows would shrink the limits and flatter the result.
+
+## 2. Data
+
+| Input | Source | Coverage | Use |
+|---|---|---|---|
+| Hourly demand and day-ahead forecast | EIA-930 | 2,861,089 rows, 21 BAs, 2019-01-01 to freeze | Model target and benchmark |
+| PJM's AEP zone demand | EIA-930 sub-BA | 68,354 rows | Secondary analysis |
+| Site power, dates, construction notes | Epoch AI | 77 US sites, 60 with power by freeze | Selection and comparison |
+| Hourly temperature and humidity | Open-Meteo | 8,308,344 rows, 121 counties | Weather features |
+| Population and centroids | US Census Bureau | All counties and ZIP areas | Weather weights, site location |
+| BA boundaries | Esri layer built on EIA data | 60 polygons | Lookups only. BA codes are stored, not polygons |
+
+**Site locations.** Of the 60 sites, 29 were placed by the Census geocoder, 19 by a ZIP centroid, 7 by
+Google Earth links in Epoch's notes, and 5 by a hand-entered ZIP with a citation. None were left
+unlocated. Where both the geocoder and Earth links were available, on 4 sites, they agreed on the BA.
+
+**Disqualifying flags.** Seven sites carry an on-site power flag, because power generated at the site may
+never appear in grid demand. Six come from a text search of Epoch's notes. One, Colossus 1, was added by
+hand with a [citation](https://www.datacenterdynamics.com/en/news/campaigners-appeal-decision-to-permit-gas-turbines-at-xais-memphis-data-center/).
+Ten sites sit inside more than one BA polygon and cannot satisfy the go test, because the polygons do not
+say which BA serves them. For the next stage, [citations](../dbt/seeds/site_ba_assignments.csv) name the serving
+utility for 8 of the 10. These results still use the original rule.
+
+<p align="center"><img src="figures/fig1_site_map.png" width="860" alt="Map of 60 US data center sites colored by test outcome, with bars showing the share of sites and power in each outcome."></p>
+
+**Figure 1. Where the listed sites are, and how each fared.** **a,** Each circle is one site, sized by
+Epoch's estimated power. Blue sites pass. Dark gray sites are smaller than their BA's limit. Orange sites
+are excluded for an on-site power flag or overlapping BA areas. Light gray sites have no limit, because
+their BA missed the 2% rule or has too little history. **b,** The two passing sites are 2 of 60 sites and
+345 of 15,835 MW.
+
+### Why this is hard: demand moves far more than a campus adds
+
+<p align="center"><img src="figures/fig2_demand_anatomy.png" width="860" alt="Carpet plots of hourly demand and scatter plots of daily demand against temperature for IPCO and PJM."></p>
+
+**Figure 2. The normal rhythm that a data center has to stand out from.** **a, c,** Each vertical stripe is
+one day and each row is one local hour, so a dark region means high demand. Summer afternoons and evenings
+stand out in both grids. **b, d,** Demand against temperature forms a U, rising on cold days and hot days.
+The hottest 5% of days add 1,146 MW in Idaho Power's grid, about 6 times Meta Kuna's 198 MW. They add 35,018 MW in PJM,
+about 28 times New Carlisle's 1,244 MW. All data predates each BA's first listed site.
+
+## 3. Methods
+
+**Candidate selection.** A BA is a candidate if its listed site power is at least 2% of its 12-month peak
+hour. Site power is Epoch's `Power (MW)` on the latest timeline row at or before the freeze. Rows after the
+freeze are projections and set neither power nor dates.
+
+**Baseline.** Trees cannot extrapolate a trend, and a flat trend would look like new load. So a linear
+trend is fit on the training window, LightGBM predicts the detrended demand, and the trend is added back.
+Features are local hour, day of week, month, US federal holiday, temperature, humidity, and cooling and
+heating degrees from a 65 F base. Weather is weighted by population across up to 10 counties. There is no
+lagged demand, because lags would absorb the very step being measured. Hours at or below zero, or above 3
+times the BA's median, are dropped and counted.
+
+**Step estimate.** Test dates $t$ fall every 30 days. For each one, the model trains on data up to
+$t - 365$ days and predicts the next 545 days. With daily mean residual $r_d$:
+
+$$e(t) = \frac{1}{180}\sum_{d=t}^{t+179} r_d - \frac{1}{365}\sum_{d=t-365}^{t-1} r_d$$
+
+The last 180-day window must end before the BA's first listed site, so the real effect stays out.
+
+**Detection limit.** With no real step in these windows, the values of $e(t)$ describe the noise. A step is
+called detected when $e(t)$ exceeds the 95th percentile of that noise. Adding $S$ MW after $t$ raises
+$e(t)$ by exactly $S$ without changing the model, so:
+
+$$\text{minimum detectable step} = q_{0.95}(e) - q_{0.20}(e)$$
+
+This is the smallest step found in 80% of windows. BAs with fewer than 12 test dates get no number.
+
+**Go test.** A site passes if it has no on-site power flag, sits in one BA polygon, belongs to a candidate BA
+with a limit, and has power at or above that limit.
+
+<p align="center"><img src="figures/fig3_worked_example.png" width="860" alt="Three stacked panels showing actual demand against the baseline, the daily error, and the step estimate across all test dates for IPCO."></p>
+
+**Figure 3. The method on one real window.** **a,** For Idaho Power's newest test window, the baseline tracks
+demand across 545 days it never saw. **b,** The daily error is averaged over the year before the test date
+and the 180 days after it. The difference is one step estimate: −22 MW, even though no step was added.
+**c,** Repeating this every 30 days shows how far the estimate wanders by chance. The orange band, from the
+20th to the 95th percentile, is 98 MW wide. That width is Idaho Power's detection limit.
+
+## 4. Results
+
+### 4.1 Which grids could be tested
+
+<p align="center"><img src="figures/fig4_grid_context.png" width="860" alt="Dot plot of listed site power as a share of peak for 21 balancing authorities, and a scatter of detection limit against grid size."></p>
+
+**Figure 4. Selection, and how limits scale with grid size.** **a,** 14 of 21 BAs meet the 2% rule. WAPA Rocky Mountain
+passes on share but is out, because its data ends on 2026-04-02 and its only site starts later. MISO misses
+at 1.76%. WAPA Desert Southwest's 31% comes from three Phoenix-area sites inside overlapping polygons. **b,** Limits rise
+with grid size at about the same share of peak, between about 1% and 5.5%. Both axes are logarithmic. The
+orange diamond is PJM's AEP zone.
+
+The Southwest Power Pool (7 test dates), Arizona Public Service, Salt River Project, and WAPA Desert Southwest (10 each) had too little history before their first site to get a
+number, which leaves 10 BAs and the AEP zone.
+
+<p align="center"><img src="figures/fig5_noise_panels.png" width="860" alt="Eleven small multiple line charts of the step estimate over time, one per series, on one shared scale."></p>
+
+**Figure 5. The noise in every series, on one scale.** Series run from the smallest limit to the largest, as
+a share of peak. Lines stop 180 days or more before the
+blue line by design. Some series start high: Bonneville, PJM, the AEP zone, and Southern Company exceed 3% of peak in early 2022,
+and the AEP zone's values are all positive, so its demand was already beating a linear trend before its first
+listed site. Later growth can look like a step, which is one reason a step alone cannot prove a cause.
+
+### 4.2 Site by site
+
+<p align="center"><img src="figures/fig6_forest_plot.png" width="860" alt="Forest plot of 40 site and balancing authority pairs showing site power divided by detection limit, with numeric columns."></p>
+
+**Figure 6. Every site against its BA's limit.** Read this like a table with a picture in the middle. A point
+right of the vertical line is a site larger than its BA's limit. Each line shows how far that ratio moves
+when the limit is recomputed on parts of the history (Section 5). A site in two BA areas appears twice.
+*Seen\* is the share of test windows in which a step of the site's full power would cross the threshold. It
+is descriptive and not part of the go test. The limit printed for each grid is rounded to the nearest
+MW. The ratio is site power divided by the unrounded limit, so 2.03 beside a limit of 98 is 198 / 97.7,
+and 1.92 beside 77 is 147 / 76.5.
+
+Table 1 lists the sites that decide the result.
+
+| Site | Grid | Power (MW) | Limit (MW) | Ratio | Result |
+|---|---|---:|---:|---:|---|
+| **Meta Kuna** | Idaho Power | 198 | 98 | 2.03 | **Passes** |
+| **Meta Los Lunas** | PNM (New Mexico) | 147 | 77 | 1.92 | **Passes** |
+| Meta-QTS Hillsboro 2 | Portland General | 243 | 44 | 5.50 | Large enough, excluded for overlap |
+| Colossus 2 | Tennessee Valley Authority | 1,276 | 846 | 1.51 | Large enough, excluded for on-site power |
+| Fairwater Atlanta | Southern Company | 859 | 1,678 | 0.51 | Below limit |
+| New Carlisle | PJM (Mid-Atlantic) | 1,244 | 3,803 | 0.33 | Below limit |
+| Stargate Abilene | ERCOT (Texas) | 865 | 2,675 | 0.32 | Below limit, and on-site power |
+
+Limits in this table are rounded to the nearest MW. Each ratio is site power divided by the unrounded limit, as in Figure 6.
+
+<p align="center"><img src="figures/fig7_power_curves.png" width="860" alt="Power curves showing the chance of detecting a step as step size grows, with Meta Kuna and New Carlisle marked."></p>
+
+**Figure 7. How the chance of detection grows with step size.** **a,** Each curve starts near the 5% false
+alarm rate and rises as the step grows. Most reach 80% between 1% and 4% of peak. **b,** Meta Kuna's 198 MW
+would be detected in all of Idaho Power's windows. **c,** New Carlisle's 1,244 MW would be detected in 26% of PJM's
+windows.
+
+### 4.3 Secondary analysis: PJM's AEP zone
+
+The AEP zone is much smaller than PJM, with a 12-month peak of 25,122 MW and a limit of 590 MW. New Carlisle's 1,244 MW
+clears it, needing 47% of its power to be seen. By the plan's rule, this analysis cannot produce a go by
+itself. It uses PJM's weather counties because the zone has no polygon of its own, so its limit may be too
+high.
+
+### 4.4 How good is the baseline?
+
+<p align="center"><img src="figures/fig8_accuracy.png" width="860" alt="Three dot plots comparing the baseline, EIA's day-ahead forecast, and a same-hour-last-week guess by three error measures."></p>
+
+**Figure 8. The baseline against two benchmarks.** Lower is better. The baseline beats a same-hour-last-week
+guess in every series and on every measure. On average error, it also beats EIA's day-ahead forecast in New Mexico,
+Idaho, and Nevada and ties in PacifiCorp West, and it loses elsewhere. This is not a fair forecasting contest: the baseline
+is given actual weather, while EIA forecasts a day ahead with fresher demand data. The AEP zone has no EIA forecast.
+
+### 4.5 First event study: Meta Los Lunas (early run)
+
+This test ran once, on 2026-11-02, from a snapshot frozen on 2026-11-01 whose hashes are in the
+[build log](log.md#amendment-5-2026-11-01). The rules are Amendments 4 and 5, both committed before the run.
+Full output: [docs/m2_early_los_lunas.md](m2_early_los_lunas.md).
+
+<p align="center"><img src="figures/fig9_los_lunas.png" width="860" alt="Two panels showing PNM's daily residual around the site start and the 45 earlier step estimates against the +64 MW estimate."></p>
+
+**Figure 9. The early event study.** **a,** The grey line is PNM's daily demand minus the baseline, which was
+trained on data ending 365 days before the start. The estimate is the mean after the start
+minus the mean before it: +34 - (-30) = +64 MW, rounded. **b,** The same estimate for each of PNM's 45 windows that
+ended before any listed site, from M1. The orange line is their 95th percentile. Dots are stacked within 10 MW bins
+and sit at their true values.
+
+| Measure | Value | Rule | Met |
+|---|---|---|---|
+| Estimate, 180 days from 2026-03-01 | +64 MW | Positive | Yes |
+| 90% interval | +13 to +102 MW | Reported | |
+| Rank p against PNM's 45 pre-site windows | 0.022 | Below 0.025 under Amendment 5 | Yes |
+| Window 180 days before the start | -45 MW | Below the +51 MW threshold | Yes |
+| Other-grid placebo, 20 grids | p = 0.095 | 0.10 or less | Yes |
+| Synthetic control gap | +70 MW | Positive | Yes |
+| Start moved 90 days earlier | -5 MW | Reported | |
+| Start moved 90 days later | Not yet | Needs data through 2026-11-25 | |
+
+Every condition for `supported` holds on these numbers, but the label is assigned in the December run with
+Meta Kuna, and that run cannot change this estimate or p-value.
+
+Five things limit what this shows:
+
+- **The p-value is at its floor.** 0.022 is 1/46 rounded to three decimals, and 1/46 is the smallest value 45 windows allow. The test cannot say how far
+  beyond the earlier windows the rise is.
+- **The other-grid check passed narrowly.** 0.095 against a 0.10 cutoff, with 20 grids in the pool.
+- **The estimate is smaller than the site.** The interval stops at 102 MW and excludes Epoch's 114 MW. The site
+  may draw less than listed, may have ramped up slowly, or other load may have fallen.
+- **It depends on Epoch's start date.** Moving the start 90 days earlier gives -5 MW, so most of the rise falls
+  after 2026-03-01. That fits a start near the listed date but would also fit any new load that began then.
+- **EIA revises recent hours.** The December run on a later snapshot reports how far the revisions move this
+  estimate. The early result stands either way.
+
+## 5. Robustness
+
+| Check | Result |
+|---|---|
+| Rerun at a new commit | Identical limits for all 15 series |
+| Full rebuild from a fresh clone and empty lake | Results file matched on every line but the commit ID |
+| Fresh clone restored from the data release | All 8 figures matched byte for byte, and results matched but for the commit ID |
+| Full fresh pull with figures, fresh clone and empty lake ([log](log.md#rebuild-with-figures-2026-11-01)) | All 8 figures matched byte for byte, and results matched but for the commit ID |
+| Step injected into real demand | Detected in 77-80% of windows at the limit |
+| No step added | 5-8% of windows crossed the threshold |
+| Limit recomputed on parts of each history (not pre-registered) | Both passing sites still clear it |
+| Next stage's code run at a made-up date before any site | Reproduced a stored estimate exactly, and labeled both grids `null` |
+
+The sensitivity check was added after the first complete run and plays no part in the go test. Idaho Power's limit
+ranged from 69 to 106 MW and PNM's from 67 to 85 MW, against sites of 198 and 147 MW. Los Lunas was at 114 MW
+until 2026-10-26, which also clears 85 MW. Other limits are far less stable. Southern Company's ranged from 503 to 2,388
+MW, and PJM's from 1,086 to 4,434 MW. New Carlisle sits inside PJM's range, so "below limit" there is a best
+estimate and not a firm boundary. The [full table](m1_detectability.md#mde-sensitivity-not-pre-registered)
+covers every series.
+
+## 6. Discussion
+
+The main result is about grids, not campuses. Limits scale with the grid, so the same campus can be easy to
+see in one place and invisible in another. A claim that one campus is visible in a total for PJM or ERCOT
+should be read with care, since these limits exceed every listed site in those markets.
+
+The result also shows where a test could work. The strongest case in the data is Meta-QTS Hillsboro 2, at 5.5
+times the limit of Portland General with data since 2023. It is excluded only because the polygons overlap, so citing its
+serving utility could add it to the next stage through a dated amendment.
+
+## 7. Limitations
+
+- **Mostly could, not did.** M1 says what could be detected. Only one site's effect has been estimated so far,
+  and a rise in demand after its start does not prove that the site caused it.
+- **Few independent windows.** Each estimate spans 545 days and test dates are 30 days apart, so a BA has far
+  fewer independent windows than dates. Every limit is rough.
+- **Sudden steps only.** Real campuses ramp up over months, which is harder to detect.
+- **Estimated site data.** Epoch's power and dates are estimates from satellite imagery and permits, not
+  metered load. A campus may draw well below its figure. The list is incomplete, and a first date can lag a
+  real start. Epoch says Google Storey County's Building 1 was first operational in 2021, but its first row
+  with power is 2023-08-30.
+- **Existing load.** Both passing sites are on Meta campuses in small BAs, and a result there says little
+  about PJM or ERCOT. Other large loads in the history widen the noise.
+- **On-site power.** Text search only finds what Epoch wrote, so some flags may be missing. Meta Kuna's notes
+  mention an offsetting solar array. Off-site solar would not reduce BA demand, but its connection should be
+  confirmed before the next stage.
+- **Geography.** BA polygons overlap and do not match county lines. 19 sites were placed on a ZIP
+  centroid and 5 on a hand-entered ZIP, and weather is a county-centroid approximation. Salt River
+  Project's weather is one county, Maricopa.
+- **Timing.** Meta Kuna's first date is 2026-06-01, so a 180-day window is not complete until about
+  2026-11-28, after this freeze.
+- **Data quality.** EIA-930 revises recent hours and has gaps and spikes. WAPA Rocky Mountain's data stops on 2026-04-02.
+- **Licensing.** The BA polygons are under the Esri Master License Agreement, not an open license. Anyone
+  reproducing this depends on Esri keeping that layer available.
+
+**Process note.** During this work, a run began against uncommitted code when a commit failed. It was stopped
+in under a minute and its output was deleted unread, before the code was committed and run. The
+[build log](log.md) records this.
+
+## 8. Conclusion and next steps
+
+Single AI campuses can be detected in small balancing authorities and generally cannot in large markets. The
+gate decision, recorded in [ADR-0002](adr/0002-m1-go-or-pivot.md), is a **go with a narrower next stage**.
+
+The rules for that stage are now locked in [Amendment 4](analysis_plan.md#amendment-4-2026-11-01-m2-event-study),
+which was approved and committed on 2026-11-01, before its data exists.
+
+| Part of the test | Rule |
+|---|---|
+| Primary sites | Meta Kuna on Idaho Power, starting 2026-06-01, 198 MW expected. Meta Los Lunas on PNM, starting 2026-03-01, 114 MW expected |
+| Data | One new snapshot, frozen on 2026-12-15, two weeks after Kuna's 180 days end |
+| Main test | Each site's estimate is ranked against that grid's own pre-site windows, corrected for testing two sites |
+| Other checks | Grids with no listed site, a synthetic control built from them, and a window before the start that should show nothing |
+| Secondary, cannot change a label | Meta-QTS Hillsboro 2 on Portland General at 61 MW, and New Carlisle on the AEP zone |
+
+The label is fixed in advance. **`supported`** needs the main test and every other check to pass. **`suggestive`**
+means the main test passed and another check did not. **`null`** means the main test did not pass, and it gets
+published as a null with its interval. Each site must beat essentially all of its pre-site windows, so a null is a
+realistic outcome. Even `supported` will not prove that a data center caused the rise, because other new customers
+could explain it.
+
+[Amendment 5](analysis_plan.md#amendment-5-2026-11-01-early-run-of-meta-los-lunas) lets Meta Los Lunas run early,
+once, on its own snapshot, because its window has already closed. The reason is timing for job applications, and
+nothing in the data prompted it. The correction for two tests stays, so a pass needs p below 0.025, which means beating
+all 45 windows. A p from 0.025 to below 0.05 stays pending until Meta Kuna runs, and anything higher is a `null`.
+It ran on 2026-11-02 and passed: +64 MW, p = 0.022 ([Section 4.5](#45-first-event-study-meta-los-lunas-early-run)).
+
+Independent review of the method and results follows that test.
+
+---
+
+## Reproduce this
+
+You need git, make, uv, and Docker with Compose v2. On macOS with Colima, run `colima start` after a reboot
+and give the VM at least 4 GB.
+
+```bash
+git clone https://github.com/VijayChamakuri/ai-power-atlas.git
+cd ai-power-atlas
+make setup
+```
+
+`make setup` creates `.env`. Add a free [EIA API key](https://www.eia.gov/opendata/register.php) there.
+`make sources-check` also needs a free [Census key](https://api.census.gov/data/key_signup.html) and a
+contact address for SEC EDGAR.
+
+```bash
+make up
+make ci
+make pipeline
+```
+
+| Command | What it does |
+|---|---|
+| `make up` | Starts Postgres, MinIO, Airflow, and MLflow. The first run builds the Airflow image |
+| `make ci` | Runs ruff, `mypy --strict`, sqlfluff, the tests with network access blocked, and dbt on a real data slice |
+| `make pipeline` | Pulls every source, runs the analysis, and draws the figures. About an hour |
+| `make dbt-build` | Builds the warehouse from the lake and runs its checks. Needs `make up` and the frozen data |
+| `make sources-check` | Rewrites `docs/source_status.md`. Exits 1 while LBNL and FCC block scripted requests |
+| `make app` | Starts the one-page app at <http://localhost:8501>. Needs no Docker and no API keys |
+| `make app-data` | Rewrites the app's files and Figure 9 from the stored early run, and stops if they differ from it |
+
+Local services are MLflow at <http://localhost:5001>, Airflow at <http://localhost:8080>, and the MinIO console
+at <http://localhost:9001>. All ports bind to loopback. Default local passwords are in `.env.example`.
+
+`make pipeline` pulls whatever the sources serve that day. Open-Meteo's daily limit can stop a weather pull, and a rerun resumes
+at the counties already saved. Providers revise history and Epoch updates its
+files, so later runs can differ. To work from the exact inputs behind this paper, download
+`atlas-m1-frozen-lake.tar.gz` from the [data release](https://github.com/VijayChamakuri/ai-power-atlas/releases/tag/data-m1-2026-10-31)
+into the repo folder, then run:
+
+```bash
+make lake-restore
+make analysis
+```
+
+The restore checks a hash for every file and writes nothing if any file is damaged. `make paper` rebuilds the
+PDF, and needs Google Chrome. `make m2` runs the next stage and refuses to start before 2026-12-15. `make m2-early` runs Meta Los Lunas once under Amendment 5. [docs/log.md](log.md) records the rebuild checks and input hashes.
+
+### The app
+
+<p align="center"><img src="figures/app_screenshot.png" width="620" alt="The app's first screen: the headline sentence, three numbers, and the daily residual chart."></p>
+
+`app/streamlit_app.py` is one page: the headline, the estimate with its interval and p-value, both charts with hover
+values, the pre-registered checks, the M1 limits for every site, and what the result does not show. It reads only
+the four CSV files in `app/data/`, about 100 KB, so it runs without the lake and can be hosted on Streamlit
+Community Cloud with `app/requirements.txt`. Every number on it comes from those files. `tests/unit/test_app.py`
+runs the page headless in CI, recomputes the estimate from the daily file, and checks it against the written result.
+
+### Warehouse and orchestration
+
+dbt builds a DuckDB warehouse from the lake. `fct_demand_hourly` holds one row per grid and hour, with
+EIA's forecast and weighted weather. `fct_site_detectability` holds the go test for each site and grid, and
+`fct_dc_load_impact` holds each M2 result, one row per site and run, with each check as a pass or fail column. The
+demand table holds observed values only, so it cannot show an M2 result early.
+
+The marts recompute results in SQL and compare them to what Python stored. Each grid's peak, each detection limit,
+the candidate rule, every go test verdict, and each M2 result's p-value and interval must match, or
+[`make dbt-build`](../dbt/tests/) fails. All 97 models and checks pass on the full lake. Adding 1 MW to the stored
+M2 estimate made that check fail, and the stored value passes. CI's dbt build passes 109 on
+a [1.2 MB real slice](../tests/fixtures/lake/): 24 models, 81 data tests, and 4 seeds, which adds the rolling EIA tables.
+
+| DAG | Schedule | What it does |
+|---|---|---|
+| `atlas_rebuild` | Manual | Runs the whole pipeline, then dbt. 16 minutes on restored data |
+| `atlas_eia_recent` | Hourly, paused | Pulls the last 72 hours, kept apart from the frozen data. dbt keeps each hour's latest revision |
+| `atlas_m2_event_study` | Once, paused | Runs the locked test. Until 2026-12-15 it stops with the freeze date, as the CLI does |
+
+Limits: `atlas_rebuild` ran out of memory on a 4 GB VM until the Airflow web UI was stopped, because the analysis
+needs about 570 MB. Run on Linux, it writes different figure files, since macOS fonts are missing, and slightly
+different numbers ([details](log.md#dbt-and-airflow-2026-11-01)), so the committed results come from macOS.
+
+## Grids in this study
+
+| EIA code | Grid | Roughly where |
+|---|---|---|
+| AEP | AEP zone of PJM | Parts of Ohio, Indiana, Michigan, and neighboring states |
+| AZPS | Arizona Public Service | Arizona |
+| BPAT | Bonneville Power Administration | Pacific Northwest |
+| DUK | Duke Energy Carolinas | North and South Carolina |
+| ERCO | ERCOT | Most of Texas |
+| IPCO | Idaho Power | Idaho and eastern Oregon |
+| MISO | Midcontinent ISO | Central US, from Minnesota to Louisiana |
+| NEVP | Nevada Power | Southern Nevada |
+| NYIS | New York ISO | New York |
+| PACE | PacifiCorp East | Utah, Wyoming, and Idaho |
+| PACW | PacifiCorp West | Oregon and Washington |
+| PGE | Portland General Electric | Northwest Oregon |
+| PJM | PJM Interconnection | Mid-Atlantic and Ohio Valley |
+| PNM | Public Service Company of New Mexico | New Mexico |
+| SC | Santee Cooper | South Carolina |
+| SCEG | Dominion Energy South Carolina | South Carolina |
+| SOCO | Southern Company | Georgia, Alabama, and Mississippi |
+| SRP | Salt River Project | Central Arizona |
+| SWPP | Southwest Power Pool | Central US, from the Dakotas to Oklahoma |
+| TVA | Tennessee Valley Authority | Tennessee and neighboring states |
+| WACM | Western Area Power Administration, Rocky Mountain | Colorado, Wyoming, and neighboring states |
+| WALC | Western Area Power Administration, Desert Southwest | Arizona and neighboring states |
+
+## Repository map
+
+| Path | Contents |
+|---|---|
+| [docs/paper.pdf](paper.pdf) | This paper as a PDF |
+| [../README.md](../README.md) | Short overview of the repository |
+| [RESULTS.md](RESULTS.md) | Stored values, intervals, and the other grids |
+| [METHODOLOGY.md](METHODOLOGY.md) | Windows, features, and model settings |
+| [docs/analysis_plan.md](analysis_plan.md) | Pre-registered method and dated amendments |
+| [docs/m1_detectability.md](m1_detectability.md) | Generated results for every BA and site |
+| [docs/adr/](adr/) | The go or pivot decision, and why history is never squashed |
+| [docs/DATA_SOURCES.md](DATA_SOURCES.md) | URLs, licenses, attribution, and known issues |
+| [docs/log.md](log.md) | Build log, data hashes, and differences from the plan |
+| [docs/PLAN.md](PLAN.md) | Full project plan |
+| `src/atlas/ingest/`, `contracts/`, `lake/` | Source pulls, schema checks, and storage |
+| `src/atlas/ml/` | Features, baseline, candidates, detectability, the locked event study, report, and figures |
+| `dags/` | Airflow DAGs for the rebuild, the hourly EIA pull, and the locked M2 test |
+| `dbt/models/`, `dbt/tests/` | Warehouse models, and the SQL checks against the Python results |
+| `dbt/seeds/` | Hand-entered rows, each with a citation |
+| `app/` | The one-page Streamlit app and the real extract it reads |
+| `tests/` | Tests using recorded real responses and slices of real data |
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| **Balancing authority (BA)** | An organization that keeps supply and demand matched in one part of the grid |
+| **Megawatt (MW)** | A unit of power. This study's sites run from 24 to 1,276 MW |
+| **Baseline** | The demand expected from weather and the calendar alone |
+| **Residual** | Actual demand minus the baseline |
+| **Step** | A sudden, lasting rise in demand, such as a new campus switching on |
+| **Detection limit** | The smallest step found in 80% of windows, also called the minimum detectable effect |
+| **False positive** | Calling a step detected when there is none. This study allows 5% |
+| **Power** | The chance of detecting a step that is really there. This study targets 80% |
+| **Pre-registration** | Committing the method before seeing results |
+| **Out of sample** | Scored on data the model never saw while learning |
+| **Forest plot** | A chart that lines up many estimates and their ranges against one reference line |
+
+## References
+
+1. U.S. Energy Information Administration. [Hourly Electric Grid Monitor](https://www.eia.gov/electricity/gridmonitor/) (EIA-930). Public domain.
+2. Epoch AI. [Frontier Data Centers](https://epoch.ai/data/data-centers-documentation). Retrieved 2026-10-31. CC BY 4.0.
+3. [Open-Meteo](https://open-meteo.com/). Historical Weather API. CC BY 4.0.
+4. US Census Bureau. [Geocoder](https://geocoding.geo.census.gov/), [Gazetteer files](https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.html), Population Estimates, and Cartographic Boundary Files. Public domain.
+5. Esri. `Balancing_Authorities_Summary` feature layer. Esri Master License Agreement. Lookups only.
+6. Data Center Dynamics. [Campaigners appeal decision to permit gas turbines at xAI's Memphis data center](https://www.datacenterdynamics.com/en/news/campaigners-appeal-decision-to-permit-gas-turbines-at-xais-memphis-data-center/).
+7. POWER Magazine. [SPP set to become first RTO straddling Eastern and Western Interconnections](https://www.powermag.com/spp-set-to-become-first-rto-straddling-eastern-and-western-interconnections/).
+8. Rougier, Droettboom, and Bourne (2014). [Ten Simple Rules for Better Figures](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4161295/). *PLOS Computational Biology*.
+
+Code is under the [MIT License](../LICENSE). Data stays under each source's own terms.

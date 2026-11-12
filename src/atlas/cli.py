@@ -518,8 +518,8 @@ def analyze_figures(output: Path = Path("docs/figures")) -> None:
 
 @analyze_app.command("paper")
 def analyze_paper(output: Path = Path("docs/paper.pdf")) -> None:
-    """Needs Google Chrome, which turns the HTML version of the README into a PDF."""
-    build_pdf(Path("README.md"), Path("logs/paper.html"), output)
+    """Needs Google Chrome, which turns the HTML version of the working paper into a PDF."""
+    build_pdf(Path("docs/paper.md"), Path("logs/paper.html"), output)
     log.info("paper_written", path=str(output), bytes=output.stat().st_size)
 
 

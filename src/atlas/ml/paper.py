@@ -1,4 +1,4 @@
-"""PDF of the README, so the paper can be read or sent without a GitHub login."""
+"""PDF of the working paper in docs/paper.md, so it can be read without a GitHub login."""
 
 import re
 import subprocess
@@ -72,8 +72,8 @@ def render_html(readme: str, root: Path) -> str:
 </script><style>{STYLE}</style></head><body>{body}</body></html>"""
 
 
-def build_pdf(readme: Path, html_path: Path, pdf_path: Path) -> None:
-    html_path.write_text(render_html(readme.read_text(), readme.parent.resolve()))
+def build_pdf(source: Path, html_path: Path, pdf_path: Path) -> None:
+    html_path.write_text(render_html(source.read_text(), source.parent.resolve()))
     subprocess.run(
         [
             CHROME,

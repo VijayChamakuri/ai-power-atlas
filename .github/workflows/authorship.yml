@@ -20,4 +20,4 @@ jobs:
         run: |
           # --no-merges: GitHub itself writes the temporary merge commit that tests a pull request.
           git log --no-merges --format='%an <%ae>%n%(trailers)' --all \
-            | grep -Ev '^(Vijay Shankar Chamakuri <vijaychamakuri1558@gmail.com>)?$' && exit 1 || exit 0
+            | grep -Ev '^(Vijay Shankar Chamakuri <(vijaychamakuri1558@gmail.com|91257914\+VijayChamakuri@users.noreply.github.com)>)?$' && exit 1 || exit 0
